@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import Grid from "./Grid";
+import Grid from "./Grid.vue";
 import Toolbar from "./Toolbar.vue";
 import {$eventService, EventService} from '../infra/event-service';
 export default Vue.extend({
