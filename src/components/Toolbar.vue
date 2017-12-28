@@ -1,19 +1,19 @@
 <template>
-    <div>
-        <button v-on:click="newPuzzleClicked">New Puzzle</button>
-        <button v-on:click="undoClicked">Undo</button>
-        <button v-on:click="clearClicked">Clear</button>
-        <input type="radio" name="mode" checked>Fill</input>
-        <input type="radio" name="mode">Draw</input>
-        <div class="overlay new-puzzle" :hidden="!newPuzzleVisible">
-            <button>Create</button>
-            <button @click="cancelClicked">Cancel</button>
-        </div>
+  <div>
+    <button v-on:click="newPuzzleClicked">New Puzzle</button>
+    <button v-on:click="undoClicked">Undo</button>
+    <button v-on:click="clearClicked">Clear</button>
+    <input type="radio" name="mode" checked>Fill</input>
+    <input type="radio" name="mode">Draw</input>
+    <div class="overlay glass" :hidden="!newPuzzleVisible">
+      <new-puzzle-dialog @cancel-click="hideDialog" @create-click="hideDialog"></new-puzzle-dialog>
     </div>
+  </div>
 </template>
 <script lang="ts">
 import { $eventService, EventService } from "../infra/event-service";
 import Vue from "vue";
+import NewPuzzleDialog from "./new-puzzle-dialog.vue";
 export default Vue.extend({
   name: "Toolbar",
   data() {
@@ -21,8 +21,9 @@ export default Vue.extend({
       newPuzzleVisible: false
     };
   },
+  mounted() {},
   methods: {
-    cancelClicked() {
+    hideDialog() {
       this.newPuzzleVisible = false;
     },
     newPuzzleClicked() {
@@ -34,6 +35,9 @@ export default Vue.extend({
     clearClicked() {
       $eventService.fire(EventService.Events.ClearRequest);
     }
+  },
+  components: {
+    NewPuzzleDialog
   }
 });
 </script>
@@ -41,11 +45,13 @@ export default Vue.extend({
 .overlay {
   position: absolute;
   top: 0px;
-  width: 100%;
+  width: 700px;
   height: 100%;
+
   z-index: 10;
+  background: rgba(lightblue, 1);
 }
-.new-puzzle {
-  background: lightblue;
+.glass {
+  /* background styles */
 }
 </style>

@@ -7,9 +7,9 @@
 
 <script lang="ts">
 import Vue from "vue";
-import Grid from "./Grid.vue";
-import Toolbar from "./Toolbar.vue";
-import {$eventService, EventService} from '../infra/event-service';
+import Grid from "./grid.vue";
+import Toolbar from "./toolbar.vue";
+import { $eventService, EventService } from "../infra/event-service";
 export default Vue.extend({
   name: "Builder",
   data() {
@@ -25,7 +25,9 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-  .container {
-    position: relative;
-  }
+.container {
+  position: relative;
+  width: 700px;
+  margin: 0 auto;
+}
 </style>

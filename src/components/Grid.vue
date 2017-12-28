@@ -1,14 +1,10 @@
 <template>
   <div class="grid" @keydown="handleKeyDown" tabindex="1">
     <table class="container">
-    <div v-for = "(row,r) in cells" :key="r" class="row">
-        <div v-for = "(cell,c) in cells[r]" :key="r+'_'+c" :class="'cell ' + cell.class"
-        @mousedown="handleMouseDown(cell,$event)">{{cell.value}}</div>
-    </div>
+      <div v-for="(row,r) in cells" :key="r" class="row">
+        <div v-for="(cell,c) in cells[r]" :key="r+'_'+c" :class="'cell ' + cell.class" @mousedown="handleMouseDown(cell,$event)">{{cell.value}}</div>
+      </div>
     </table>
-    <div class = "overlay">
-      
-    </div>
   </div>
 </template>
 

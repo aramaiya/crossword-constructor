@@ -7,7 +7,7 @@ import {$cellModel} from './models/cell-model'
 
 Vue.config.productionTip = false
 
-$cellModel.initialize(2,10);
+$cellModel.initialize(15,15);
 
 Vue.prototype.$hey = 'hey';
 let het = 'hey';
