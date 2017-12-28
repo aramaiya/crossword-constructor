@@ -13,9 +13,7 @@ import {$eventService, EventService} from '../infra/event-service';
 export default Vue.extend({
   name: "Builder",
   data() {
-    return {
-      
-    };
+    return {};
   },
   created() {},
   mounted() {},
