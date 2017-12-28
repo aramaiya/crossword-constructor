@@ -20,9 +20,6 @@ export default Vue.extend({
   created() {},
   mounted() {
   },
-  methods: {
-    
-  },
   components: {
     Toolbar,
     Grid
