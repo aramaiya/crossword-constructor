@@ -18,8 +18,7 @@ export default Vue.extend({
   name: "Toolbar",
   data() {
     return {
-      newPuzzleVisible: false,
-      mode: 0
+      newPuzzleVisible: false
     };
   },
   methods: {
