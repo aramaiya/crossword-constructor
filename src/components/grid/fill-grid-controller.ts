@@ -22,12 +22,17 @@ export class FillGridController extends GridController {
     private selectedCell: CellView;
     private highlightedCells: CellView[] = [];
 
-    constructor(cellViews: CellView[][]) {
-        super(cellViews);
+    constructor() {
+        super();
         $eventService.subscribe(EventService.Events.UndoRequest, this.undo, this);
         $eventService.subscribe(EventService.Events.ClearRequest, this.clearBoard, this);
         $cellModel.subscribe(CellModel.Events.CELL_UPDATED, this.cellUpdated, this);
 
+    }
+
+    attachCellViews(cellViews: CellView[][]) {
+        super.attachCellViews(cellViews);
+        if (!!cellViews && cellViews.length >0 && cellViews[0].length > 0)
         this.selectCell(this.cellViews[0][0]);
         this.setDirection(Direction.Horizontal);
     }

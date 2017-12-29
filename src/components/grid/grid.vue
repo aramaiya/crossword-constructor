@@ -17,13 +17,15 @@ import { CellView } from "./cell-view";
 export default Vue.extend({
   name: "Grid",
   data() {
+    let cells = [[]] as CellView[][];
     return {
-      cells: [[]] as CellView[][],
-      behavior: {} as GridController
+      cells: cells,
+      behavior: new FillGridController()
     };
   },
-  mounted() {
-    this.initializeGrid();
+  created() {
+    console.log(this.cells);
+    this.initializeGrid.call(this);
     $builderModel.subscribe(
       BuilderModel.Events.NEW_PUZZLE_CREATED,
       this.initializeGrid,
@@ -49,7 +51,7 @@ export default Vue.extend({
         }
       }
       this.cells = cells;
-      this.behavior = new FillGridController(this.cells);
+      this.behavior.attachCellViews(cells);
     }
   }
 });
