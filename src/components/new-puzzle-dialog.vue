@@ -13,7 +13,8 @@
   </div>
 </template>
 <script lang="ts">
-import { $eventService, EventService } from "../infra/event-service";
+
+import {$builderModel} from "../models/builder-model";
 import Vue from "vue";
 export default Vue.extend({
   name: "new-puzzle-dialog",
@@ -28,6 +29,7 @@ export default Vue.extend({
       this.$emit("cancel-click");
     },
     createClicked() {
+      $builderModel.createNewPuzzle(this.rows, this.cols);
       this.$emit("create-click");
     }
   }

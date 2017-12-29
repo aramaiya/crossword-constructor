@@ -1,14 +1,9 @@
-import { $cellModel, Cell, CellType, SetTypeCommand, SetValueCommand } from '../models/cell-model';
+import { Cell, CellType, SetTypeCommand, SetValueCommand, CellModel } from '../../models/cell-model';
 import { CellView } from './cell-view';
-import { Key } from './key';
-import {$eventService, EventService} from '../infra/event-service';
-
-export interface ModeBehavior {
-    attach(data: any): void;
-    handleMouseDown(cell: CellView, e: MouseEvent): void;
-    handleKeyDown(e: KeyboardEvent): void;
-    handleKeyUp(e: KeyboardEvent): void
-}
+import { Keycodes } from '../../constants/keycodes';
+import { $eventService, EventService } from '../../infra/event-service';
+import { $cellModel } from '../../models/cell-model'
+import { GridController } from './grid-controller'
 
 enum Direction {
     Horizontal,
@@ -22,22 +17,21 @@ enum Movement {
     Down
 }
 
-export class FillModeBehavior implements ModeBehavior {
+export class FillGridController extends GridController {
     private direction: Direction;
     private selectedCell: CellView;
     private highlightedCells: CellView[] = [];
-    private cellStore: Array<Array<CellView>>;
-    
-    constructor() {
+
+    constructor(cellViews: CellView[][]) {
+        super(cellViews);
         $eventService.subscribe(EventService.Events.UndoRequest, this.undo, this);
         $eventService.subscribe(EventService.Events.ClearRequest, this.clearBoard, this);
-        $cellModel.subscribe(this.cellUpdated, this);
-    }
-    attach(data: any) {
-        this.cellStore = data.cells;
-        this.selectCell(this.cellStore[0][0]);
+        $cellModel.subscribe(CellModel.Events.CELL_UPDATED, this.cellUpdated, this);
+
+        this.selectCell(this.cellViews[0][0]);
         this.setDirection(Direction.Horizontal);
     }
+
     handleMouseDown(cell: CellView, e: MouseEvent): void {
         if (this.selectedCell === cell) {
             if (this.direction === Direction.Vertical) {
@@ -52,26 +46,26 @@ export class FillModeBehavior implements ModeBehavior {
     }
     handleKeyDown(e: KeyboardEvent): void {
         switch (e.keyCode) {
-            case Key.DownArrow:
+            case Keycodes.DownArrow:
                 if (this.direction === Direction.Vertical)
                     this.moveSelection(Movement.Down);
                 else
                     this.setDirection(Direction.Vertical);
                 break;
-            case Key.UpArrow:
+            case Keycodes.UpArrow:
                 if (this.direction === Direction.Vertical)
                     this.moveSelection(Movement.Up);
                 else
                     this.setDirection(Direction.Vertical);
                 break;
-            case Key.LeftArrow:
+            case Keycodes.LeftArrow:
                 if (this.direction === Direction.Horizontal) {
                     this.moveSelection(Movement.Left);
                 }
                 else
                     this.setDirection(Direction.Horizontal);
                 break;
-            case Key.RightArrow:
+            case Keycodes.RightArrow:
                 if (this.direction === Direction.Horizontal)
                     this.moveSelection(Movement.Right);
                 else
@@ -79,7 +73,7 @@ export class FillModeBehavior implements ModeBehavior {
                 break;
         }
 
-        if (e.keyCode >= Key.A && e.keyCode <= Key.Z) {
+        if (e.keyCode >= Keycodes.A && e.keyCode <= Keycodes.Z) {
             let cell = $cellModel.getCell(this.selectedCell.row, this.selectedCell.col);
             let val = String.fromCharCode(e.keyCode).toUpperCase();
             let cmd = new SetValueCommand(cell, val);
@@ -89,7 +83,7 @@ export class FillModeBehavior implements ModeBehavior {
             } else {
                 this.moveSelection(Movement.Down);
             }
-        } else if (e.keyCode === Key.Space) {
+        } else if (e.keyCode === Keycodes.Space) {
             let cell = $cellModel.getCell(this.selectedCell.row, this.selectedCell.col);
             let dual = $cellModel.getCell($cellModel.rows - this.selectedCell.row - 1, $cellModel.cols - this.selectedCell.col - 1);
             let type: CellType = CellType.Block;
@@ -104,7 +98,7 @@ export class FillModeBehavior implements ModeBehavior {
             } else {
                 this.moveSelection(Movement.Down);
             }
-        } else if (e.keyCode === Key.Backspace) {
+        } else if (e.keyCode === Keycodes.Backspace) {
             let cell = $cellModel.getCell(this.selectedCell.row, this.selectedCell.col);
             if (cell.value === "" && cell.type === CellType.Value) {
                 if (this.direction === Direction.Horizontal) {
@@ -117,9 +111,9 @@ export class FillModeBehavior implements ModeBehavior {
             let cmd = new SetValueCommand(cell, '');
             $cellModel.commit(cmd);
         }
-        else if (e.keyCode === Key.One) {
+        else if (e.keyCode === Keycodes.One) {
             this.undo();
-        } else if (e.keyCode === Key.Two) {
+        } else if (e.keyCode === Keycodes.Two) {
             this.clearBoard();
         }
     }
@@ -171,7 +165,7 @@ export class FillModeBehavior implements ModeBehavior {
                     row = row + 1;
                 }
         }
-        this.selectCell(this.cellStore[row][col]);
+        this.selectCell(this.cellViews[row][col]);
     }
     private selectCell(cell: CellView) {
         if (!cell) return;
@@ -185,13 +179,13 @@ export class FillModeBehavior implements ModeBehavior {
 
 
         if (direction === Direction.Horizontal) {
-            for (let cell of this.cellStore[this.selectedCell.row]) {
+            for (let cell of this.cellViews[this.selectedCell.row]) {
                 cell.addClass("highlighted");
                 this.highlightedCells.push(cell);
             }
         }
         else {
-            for (let row of this.cellStore) {
+            for (let row of this.cellViews) {
                 let cell = row[this.selectedCell.col];
                 cell.addClass("highlighted");
                 this.highlightedCells.push(cell);
@@ -210,12 +204,12 @@ export class FillModeBehavior implements ModeBehavior {
     }
 
     undo() {
-        $cellModel.undo();        
+        $cellModel.undo();
     }
 
     private cellUpdated(c: Cell) {
         console.log(c);
-        let cv = this.cellStore[c.position[0]][c.position[1]];
+        let cv = this.cellViews[c.position[0]][c.position[1]];
         cv.value = c.value;
         if (c.type === CellType.Block) {
             cv.addClass("blocked");

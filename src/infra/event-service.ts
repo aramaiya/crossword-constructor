@@ -8,7 +8,7 @@ export class Event<T> {
 export class EventService {
     private subs: {[event: string]: Function[]} = {};
     fire<T>(event: Event<T>, payload?: T) {
-        let fns = this.subs[event.name];
+        let fns = this.subs[event.name] || [];
         for (let fn of fns) fn(payload);
     }
     subscribe<T>(event: Event<T>, cb: Function, ctx: any) {

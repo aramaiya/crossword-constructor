@@ -10,28 +10,26 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { $cellModel } from "../models/cell-model";
-import { FillModeBehavior } from "./cell-view-provider";
+import { $builderModel, BuilderModel } from "../../models/builder-model";
+import { GridController } from "./grid-controller";
+import { FillGridController } from "./fill-grid-controller";
 import { CellView } from "./cell-view";
 export default Vue.extend({
   name: "Grid",
   data() {
-    let cells: Array<Array<CellView>> = [[]];
-    for (let r = 0; r < $cellModel.rows; r++) {
-      if (!cells[r]) cells[r] = [];
-      for (let j = 0; j < $cellModel.cols; j++) {
-        cells[r][j] = new CellView(r, j);
-      }
-    }
     return {
-      cells: cells,
-      behavior: new FillModeBehavior()
+      cells: [[]] as CellView[][],
+      behavior: {} as GridController
     };
   },
-  created() {
-    this.behavior.attach(this.$data);
-  },
   mounted() {
+    this.initializeGrid();
+    $builderModel.subscribe(
+      BuilderModel.Events.NEW_PUZZLE_CREATED,
+      this.initializeGrid,
+      this
+    );
+
     this.$el.focus();
     console.log(this.$el);
   },
@@ -41,6 +39,17 @@ export default Vue.extend({
     },
     handleMouseDown(cell: CellView, e: MouseEvent) {
       this.behavior.handleMouseDown(cell, e);
+    },
+    initializeGrid() {
+      let cells: CellView[][] = [[]];
+      for (let r = 0; r < $builderModel.rows; r++) {
+        if (!cells[r]) cells[r] = [];
+        for (let j = 0; j < $builderModel.cols; j++) {
+          cells[r][j] = new CellView(r, j);
+        }
+      }
+      this.cells = cells;
+      this.behavior = new FillGridController(this.cells);
     }
   }
 });

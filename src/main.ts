@@ -3,11 +3,11 @@
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
-import {$cellModel} from './models/cell-model'
+import { $builderModel } from './models/builder-model';
 
 Vue.config.productionTip = false
 
-$cellModel.initialize(15,15);
+$builderModel.createNewPuzzle(15,15);
 
 Vue.prototype.$hey = 'hey';
 let het = 'hey';

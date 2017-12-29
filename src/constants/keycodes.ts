@@ -1,4 +1,4 @@
-enum Key {
+enum Keycodes {
     Backspace = 8,
     Tab = 9,
     Enter = 13,
@@ -115,4 +115,4 @@ enum Key {
     Quote = 222,
 }
 
-export {Key}
+export {Keycodes}
