@@ -31,7 +31,8 @@ export default Vue.extend({
       this.initializeGrid,
       this
     );
-
+  },
+  mounted() {
     this.$el.focus();
     console.log(this.$el);
   },

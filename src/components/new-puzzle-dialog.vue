@@ -2,9 +2,9 @@
   <div>
     <div class="new-puzzle">
       <div class="dim-label">
-        <label for="rowsInput">Rows</label><input id="rowsInput" type="number" min="4" max="30" v-model="rows" /></div>
+        <label for="rowsSelect">Rows</label><select id="rowsSelect" v-model="rows"><option v-for="(i,ix) in 47">{{i +3}}</option></select></div>
       <div class="dim-label">
-        <label for="colsInput">Columns</label><input id="colsInput" type="number" min="4" max="30" v-model="cols" /></div>
+        <label for="colsSelect">Columns</label><select id="colsSelect" v-model="cols"><option v-for="(i,ix) in 47">{{i +3}}</option></select></div>
       <div>
         <button @click="createClicked">Create</button>
         <button @click="cancelClicked">Cancel</button>
@@ -23,6 +23,10 @@ export default Vue.extend({
       rows: 15,
       cols: 15
     };
+  },
+  mounted() {
+    this.rows = $builderModel.rows;
+    this.cols = $builderModel.cols;
   },
   methods: {
     cancelClicked() {

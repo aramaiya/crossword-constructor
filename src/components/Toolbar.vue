@@ -5,7 +5,7 @@
     <button v-on:click="clearClicked">Clear</button>
     <input type="radio" name="mode" checked>Fill</input>
     <input type="radio" name="mode">Draw</input>
-    <div class="overlay glass" :hidden="!newPuzzleVisible">
+    <div class="overlay glass" v-if="newPuzzleVisible">
       <new-puzzle-dialog @cancel-click="hideDialog" @create-click="hideDialog"></new-puzzle-dialog>
     </div>
   </div>
