@@ -24,8 +24,6 @@ export class EventService {
         UndoRequest: new Event<any>("undo-request"),
         RedoRequest: new Event<any>("redo-request"),
         ClearRequest: new Event<any>("clear-request"),
-        NewPuzzleRequest: new Event<any>("new-puzzle-request"),
-        ChangeModeRequest: new Event<any>("change-mode")
     }
 }
 

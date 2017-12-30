@@ -73,8 +73,6 @@ export class CellModel extends ModelBase {
     }
 }
 
-
-
 export interface Cell {
     position: [number, number];
     type: CellType;
@@ -86,7 +84,5 @@ export enum CellType {
     Value,
     Block,
 }
-
-
 
 export const $cellModel = new CellModel();

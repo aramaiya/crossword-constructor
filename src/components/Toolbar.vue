@@ -53,7 +53,7 @@ export default Vue.extend({
   height: 100%;
 
   z-index: 10;
-  background: rgba(lightblue, 1);
+  background: rgba(black, .85);
 }
 .glass {
   /* background styles */

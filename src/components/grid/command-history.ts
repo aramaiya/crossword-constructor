@@ -8,17 +8,17 @@ export class Commander {
         }
         this.commandStack.push(commands);
         this.commandMarker = this.commandStack.length - 1;
-        this.commandStack[this.commandMarker].forEach(c=>c.execute());
+        this.commandStack[this.commandMarker].forEach(c => c.execute());
     }
     undo(): void {
         if (this.commandMarker < 0) return;
-        this.commandStack[this.commandMarker].forEach(c=>c.undo());
+        this.commandStack[this.commandMarker].forEach(c => c.undo());
         this.commandMarker--;
     }
     redo(): void {
-        if (this.commandMarker===this.commandStack.length - 1) return;
+        if (this.commandMarker === this.commandStack.length - 1) return;
         this.commandMarker++;
-        this.commandStack[this.commandMarker].forEach(c=>c.execute());
+        this.commandStack[this.commandMarker].forEach(c => c.execute());
     }
 }
 export interface Command {
