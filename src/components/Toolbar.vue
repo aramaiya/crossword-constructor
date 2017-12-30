@@ -2,6 +2,7 @@
   <div>
     <button v-on:click="newPuzzleClicked">New Puzzle</button>
     <button v-on:click="undoClicked">Undo</button>
+    <button v-on:click="redoClicked">Redo</button>
     <button v-on:click="clearClicked">Clear</button>
     <input type="radio" name="mode" checked>Fill</input>
     <input type="radio" name="mode">Draw</input>
@@ -31,6 +32,9 @@ export default Vue.extend({
     },
     undoClicked() {
       $eventService.fire(EventService.Events.UndoRequest);
+    },
+    redoClicked() {
+      $eventService.fire(EventService.Events.RedoRequest);
     },
     clearClicked() {
       $eventService.fire(EventService.Events.ClearRequest);

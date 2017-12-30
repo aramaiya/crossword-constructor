@@ -1,10 +1,10 @@
-import { Cell, CellType, SetTypeCommand, SetValueCommand, CellModel } from '../../models/cell-model';
+import { Cell, CellType, CellModel } from '../../models/cell-model';
 import { CellView } from './cell-view';
 import { Keycodes } from '../../constants/keycodes';
 import { $eventService, EventService } from '../../infra/event-service';
 import { $cellModel } from '../../models/cell-model'
 import { GridController } from './grid-controller'
-
+import { Commander, Command } from './command-history'
 enum Direction {
     Horizontal,
     Vertical
@@ -25,6 +25,7 @@ export class FillGridController extends GridController {
     constructor() {
         super();
         $eventService.subscribe(EventService.Events.UndoRequest, this.undo, this);
+        $eventService.subscribe(EventService.Events.RedoRequest, this.redo, this);
         $eventService.subscribe(EventService.Events.ClearRequest, this.clearBoard, this);
         $cellModel.subscribe(CellModel.Events.CELL_UPDATED, this.cellUpdated, this);
 
@@ -32,8 +33,8 @@ export class FillGridController extends GridController {
 
     attachCellViews(cellViews: CellView[][]) {
         super.attachCellViews(cellViews);
-        if (!!cellViews && cellViews.length >0 && cellViews[0].length > 0)
-        this.selectCell(this.cellViews[0][0]);
+        if (!!cellViews && cellViews.length > 0 && cellViews[0].length > 0)
+            this.selectCell(this.cellViews[0][0]);
         this.setDirection(Direction.Horizontal);
     }
 
@@ -81,8 +82,8 @@ export class FillGridController extends GridController {
         if (e.keyCode >= Keycodes.A && e.keyCode <= Keycodes.Z) {
             let cell = $cellModel.getCell(this.selectedCell.row, this.selectedCell.col);
             let val = String.fromCharCode(e.keyCode).toUpperCase();
-            let cmd = new SetValueCommand(cell, val);
-            $cellModel.commit(cmd);
+            let cmd = this.setValueCommandFactory.Create(cell, val);
+            this.commander.execute(cmd);
             if (this.direction === Direction.Horizontal) {
                 this.moveSelection(Movement.Right);
             } else {
@@ -94,9 +95,9 @@ export class FillGridController extends GridController {
             let type: CellType = CellType.Block;
             if (cell.type === CellType.Block) type = CellType.Value;
 
-            let cmd1 = new SetTypeCommand(cell, type);
-            let cmd2 = new SetTypeCommand(dual, type);
-            $cellModel.commit(cmd1, cmd2);
+            let cmd1 = this.setTypeCommandFactory.Create(cell, type);
+            let cmd2 = this.setTypeCommandFactory.Create(dual, type);
+            this.commander.execute(cmd1, cmd2);
 
             if (this.direction === Direction.Horizontal) {
                 this.moveSelection(Movement.Right);
@@ -113,8 +114,8 @@ export class FillGridController extends GridController {
                 }
             }
             cell = $cellModel.getCell(this.selectedCell.row, this.selectedCell.col);
-            let cmd = new SetValueCommand(cell, '');
-            $cellModel.commit(cmd);
+            let cmd = this.setValueCommandFactory.Create(cell, '');
+            this.commander.execute(cmd);
         }
         else if (e.keyCode === Keycodes.One) {
             this.undo();
@@ -203,13 +204,10 @@ export class FillGridController extends GridController {
         let cmds = [];
         let cells = $cellModel.getCells();
         for (let cell of cells) {
-            cmds.push(new SetValueCommand(cell, ''));
+            let cmd = this.setValueCommandFactory.Create(cell, '');
+            cmds.push(cmd);
         }
-        $cellModel.commit(...cmds);
-    }
-
-    undo() {
-        $cellModel.undo();
+        this.commander.execute(...cmds);
     }
 
     private cellUpdated(c: Cell) {
@@ -223,4 +221,52 @@ export class FillGridController extends GridController {
             cv.removeClass("blocked");
         }
     }
+
+    setValueCommandFactory = {
+        Create: (cell: Cell, value: string) => {
+            let cmd = {} as Command;
+            let oldValue: string;
+            let oldType: CellType;
+            let oldSelected: CellView;
+            let oldDirection: Direction
+            cmd.execute = () => {
+                oldValue = cell.value;;
+                oldType = cell.type;
+                oldSelected = this.selectedCell;
+                oldDirection = this.direction;
+                $cellModel.setValue(cell, value);
+            }
+            cmd.undo = () => {
+                $cellModel.setValue(cell, oldValue);
+                $cellModel.setType(cell, oldType);
+                this.setDirection(oldDirection);
+                this.selectCell(oldSelected)
+            }
+            return cmd;
+        }
+    };
+
+    setTypeCommandFactory = {
+        Create: (cell: Cell, type: CellType) => {
+            let cmd = {} as Command;
+            let oldValue: string;
+            let oldType: CellType;
+            let oldSelected: CellView;
+            let oldDirection: Direction
+            cmd.execute = () => {
+                oldValue = cell.value;;
+                oldType = cell.type;
+                oldSelected = this.selectedCell;
+                oldDirection = this.direction;
+                $cellModel.setType(cell, type);
+            }
+            cmd.undo = () => {
+                $cellModel.setValue(cell, oldValue);
+                $cellModel.setType(cell, oldType);
+                this.setDirection(oldDirection);
+                this.selectCell(oldSelected)
+            }
+            return cmd;
+        }
+    };
 }
