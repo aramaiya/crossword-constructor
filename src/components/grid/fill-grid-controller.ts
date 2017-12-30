@@ -24,11 +24,7 @@ export class FillGridController extends GridController {
 
     constructor() {
         super();
-        $eventService.subscribe(EventService.Events.UndoRequest, this.undo, this);
-        $eventService.subscribe(EventService.Events.RedoRequest, this.redo, this);
         $eventService.subscribe(EventService.Events.ClearRequest, this.clearBoard, this);
-        $cellModel.subscribe(CellModel.Events.CELL_UPDATED, this.cellUpdated, this);
-
     }
 
     attachCellViews(cellViews: CellView[][]) {
@@ -117,11 +113,6 @@ export class FillGridController extends GridController {
             let cmd = this.setValueCommandFactory.Create(cell, '');
             this.commander.execute(cmd);
         }
-        else if (e.keyCode === Keycodes.One) {
-            this.undo();
-        } else if (e.keyCode === Keycodes.Two) {
-            this.clearBoard();
-        }
     }
     handleKeyUp(e: KeyboardEvent): void {
         throw new Error("Method not implemented.");
@@ -208,18 +199,6 @@ export class FillGridController extends GridController {
             cmds.push(cmd);
         }
         this.commander.execute(...cmds);
-    }
-
-    private cellUpdated(c: Cell) {
-        console.log(c);
-        let cv = this.cellViews[c.position[0]][c.position[1]];
-        cv.value = c.value;
-        if (c.type === CellType.Block) {
-            cv.addClass("blocked");
-        }
-        else {
-            cv.removeClass("blocked");
-        }
     }
 
     setValueCommandFactory = {

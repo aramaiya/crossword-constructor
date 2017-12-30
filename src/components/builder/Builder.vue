@@ -7,9 +7,10 @@
 
 <script lang="ts">
 import Vue from "vue";
-import Grid from "./grid/grid.vue";
-import Toolbar from "./toolbar.vue";
-import { $eventService, EventService } from "../infra/event-service";
+import Grid from "../grid/grid.vue";
+import Toolbar from "../toolbar.vue";
+import { $eventService, EventService } from "../../infra/event-service";
+import {$crosswordBuilder} from "./crossword-builder"
 export default Vue.extend({
   name: "Builder",
   data() {
@@ -17,6 +18,7 @@ export default Vue.extend({
   },
   created() {},
   mounted() {},
+  methods: {},
   components: {
     Toolbar,
     Grid

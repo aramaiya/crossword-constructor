@@ -24,6 +24,7 @@ export class EventService {
         UndoRequest: new Event<any>("undo-request"),
         RedoRequest: new Event<any>("redo-request"),
         ClearRequest: new Event<any>("clear-request"),
+        ModeChangeRequest: new Event<any>("mode-change-request") 
     }
 }
 

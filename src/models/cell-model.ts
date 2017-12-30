@@ -39,15 +39,19 @@ export class CellModel extends ModelBase {
     }
 
     setValue(cell: Cell, value: string) {
-        cell.value = value;
-        if (cell.type === CellType.Block) cell.type = CellType.Value;
-        this.fire(CellModel.Events.CELL_UPDATED, cell);
+        if (cell.value !== value || cell.type === CellType.Block) {
+            cell.value = value;
+            if (cell.type === CellType.Block) cell.type = CellType.Value;
+            this.fire(CellModel.Events.CELL_UPDATED, cell);
+        }
     }
 
     setType(cell: Cell, type: CellType) {
-        cell.type = type;
-        if (type === CellType.Block) cell.value = '';
-        this.fire(CellModel.Events.CELL_UPDATED, cell);
+        if (cell.type != type || cell.value !== '') {
+            cell.type = type;
+            if (type === CellType.Block) cell.value = '';
+            this.fire(CellModel.Events.CELL_UPDATED, cell);
+        }
     }
 
     getCell(row: number, col: number) {

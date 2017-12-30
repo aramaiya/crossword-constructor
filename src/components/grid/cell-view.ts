@@ -24,6 +24,10 @@ export class CellView {
         }
         this.updateClass();
     }
+    removeAllClasses() {
+        this.classList = {};
+        this.updateClass();
+    }
     private updateClass() {
         let name = Object.keys(this.classList).join(" ");
         if (!name) name = ""

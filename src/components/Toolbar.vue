@@ -4,8 +4,8 @@
     <button v-on:click="undoClicked">Undo</button>
     <button v-on:click="redoClicked">Redo</button>
     <button v-on:click="clearClicked">Clear</button>
-    <input type="radio" name="mode" checked>Fill</input>
-    <input type="radio" name="mode">Draw</input>
+    <input type="radio" value="Fill" name="mode" v-model="mode">Fill</input>
+    <input type="radio" value="Draw" name="mode" v-model="mode">Draw</input>
     <div class="overlay glass" v-if="newPuzzleVisible">
       <new-puzzle-dialog @cancel-click="hideDialog" @create-click="hideDialog"></new-puzzle-dialog>
     </div>
@@ -15,14 +15,19 @@
 import { $eventService, EventService } from "../infra/event-service";
 import Vue from "vue";
 import NewPuzzleDialog from "./new-puzzle-dialog.vue";
+import { $crosswordBuilder, Mode } from "./builder/crossword-builder";
 export default Vue.extend({
   name: "Toolbar",
   data() {
+    console.log($crosswordBuilder.mode);
     return {
-      newPuzzleVisible: false
+      newPuzzleVisible: false,
+      mode: $crosswordBuilder.mode
     };
   },
-  mounted() {},
+  mounted() {
+    console.log(this.mode);
+  },
   methods: {
     hideDialog() {
       this.newPuzzleVisible = false;
@@ -40,6 +45,12 @@ export default Vue.extend({
       $eventService.fire(EventService.Events.ClearRequest);
     }
   },
+  watch: {
+    mode: function(newMode: Mode) {
+      console.log("mode change to " + newMode);
+      $eventService.fire(EventService.Events.ModeChangeRequest, newMode);
+    }
+  },
   components: {
     NewPuzzleDialog
   }
@@ -53,7 +64,7 @@ export default Vue.extend({
   height: 100%;
 
   z-index: 10;
-  background: rgba(black, .85);
+  background: rgba(black, 0.85);
 }
 .glass {
   /* background styles */
