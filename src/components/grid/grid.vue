@@ -1,92 +1,84 @@
 <template>
-  <div class="grid" @keydown="handleKeyDown" tabindex="1">
-    <table class="container">
-      <div v-for="(row,r) in cells" :key="r" class="row">
-        <div v-for="(cell,c) in cells[r]" :key="r+'_'+c" :class="'cell ' + cell.class" @mouseout="handleMouseOut(cell, $event)" @mouseup="handleMouseUp(cell, $event)" @mouseover="handleMouseOver(cell, $event)" @mousedown="handleMouseDown(cell,$event)">{{cell.value}}</div>
+  <div >
+    <div><toolbar :initial-mode="mode" :initial-symmetry="symmetry"></toolbar></div>
+    <div class="grid" @keydown="handleKeyDown($event)" tabindex="1">
+    <table class="container" v-if="!!cwd">
+      <div v-for="(row,r) in cwd.cells" :key="r" class="row">
+        <cell-component :cell="cell" v-for="(cell,c) in cwd.cells[r]" :key="cell.id" :highlighted="isHighlighted(cell)" :selected="isSelected(cell)" @mouseout.native="handleMouseOut(cell, $event)" @mouseup.native="handleMouseUp(cell, $event)" @mouseover.native="handleMouseOver(cell, $event)" @mousedown.native="handleMouseDown(cell, $event)"></cell-component>
       </div>
     </table>
+</div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import { $builderModel, BuilderModel } from "../../models/builder-model";
-import { GridController } from "./grid-controller";
-import { FillGridController } from "./fill-grid-controller";
-import { DrawGridController } from "./draw-grid-controller";
-import { $crosswordBuilder } from "../builder/crossword-builder";
-import { $eventService, EventService } from "../../infra/event-service";
-import { CellView } from "./cell-view";
-import { Mode } from "../builder/crossword-builder";
+import Toolbar from "../toolbar.vue";
+import bus from "../../bus";
+import CellComponent from "./cell-component.vue";
+import { GridData, GridHandler } from "./grid-handler";
+import { getHandler } from "./handler";
+import { Cell, Direction, Mode, Crossword, Symmetry } from "../../types/common";
 export default Vue.extend({
   name: "Grid",
+  props: ["cwd"],
   data() {
-    let cells = [[]] as CellView[][];
     return {
-      cells: cells,
-      controller: $crosswordBuilder.controller
-    };
+      mode: Mode.Fill,
+      symmetry: Symmetry.Radial,
+      crossword: this.cwd,
+      selected: this.cwd.cells[0][0],
+      direction: Direction.Horizontal as Direction,
+      highlighted: {} as { [id: string]: boolean }
+    } as GridData;
   },
-  created() {
-    console.log(this.cells);
-  },
+  components: { CellComponent, Toolbar },
   mounted() {
-$builderModel.subscribe(
-      BuilderModel.Events.NEW_PUZZLE_CREATED,
-      this.initializeGrid,
-      this
-    );
-    $eventService.subscribe(
-      EventService.Events.ModeChangeRequest,
-      this.updateController,
-      this
-    );
-
-        this.initializeGrid.call(this);
-
-    console.log(this.$el);
+    bus.$on("mode-change", (m: Mode) => (this.mode = m));
+    bus.$on("symmetry-change", (m: Symmetry) => (this.symmetry = m));
   },
-  methods: {
-    handleKeyDown(e: KeyboardEvent) {
-      this.controller.handleKeyDown(e);
+  computed: {
+    handleKeyDown(): Function {
+      return this.handler.keyDownHandler;
     },
-    handleMouseDown(cell: CellView, e: MouseEvent) {
-      this.controller.handleMouseDown(cell, e);
+    handleMouseDown(): Function {
+      return this.handler.mouseDownHandler;
     },
-    handleMouseOver(cell: CellView, e: MouseEvent) {
-      this.controller.handleMouseOver(cell, e);
+    handleMouseOut(): Function {
+      return this.handler.mouseOutHandler;
     },
-    handleMouseOut(cell: CellView, e: MouseEvent) {
-      this.controller.handleMouseOut(cell, e);
+    handleMouseOver(): Function {
+      return this.handler.mouseOverHandler;
     },
-    handleMouseUp(cell: CellView, e: MouseEvent) {
-      this.controller.handleMouseUp(cell, e);
+    handleMouseUp(): Function {
+      return this.handler.mouseUpHandler;
     },
-    initializeGrid() {
-      let cells: CellView[][] = [[]];
-      for (let r = 0; r < $builderModel.rows; r++) {
-        if (!cells[r]) cells[r] = [];
-        for (let j = 0; j < $builderModel.cols; j++) {
-          cells[r][j] = new CellView(r, j);
-        }
-      }
-      this.cells = cells;
-      this.controller.attachCellViews(cells);
-      this.$el.focus();
+    handler(): GridHandler {
+      return getHandler(this.$store, this.$data as GridData)(this.mode);
     },
-    updateController(mode: Mode) {
-      console.log("updating controller", mode);
-      switch (mode) {
-        case Mode.Fill:
-          this.controller = new FillGridController();
-          break;
-        case Mode.Draw:
-          this.controller = new DrawGridController();
-      }
-      this.controller.attachCellViews(this.cells);
-      this.$el.focus();
+    isSelected() {
+      return (c: Cell) => {
+        return (
+          this.mode === Mode.Fill &&
+          !!this.selected &&
+          c.id === this.selected.id
+        );
+      };
+    },
+    isHighlighted() {
+      return (c: Cell) => {
+        return this.mode === Mode.Fill && !!this.highlighted[c.id];
+      };
     }
-  }
+  },
+  watch: {
+    cwd: function(newCwd: Crossword) {
+      this.crossword = newCwd;
+      this.selected = newCwd.cells[0][0];
+      Vue.set(this, "highlighted", {});
+      this.direction = Direction.Horizontal;
+    }
+  },
 });
 </script>
 
@@ -107,33 +99,5 @@ $builderModel.subscribe(
 }
 .row {
   display: table-row;
-}
-.cell {
-  margin: 10px;
-  font-family: Arial, Helvetica, sans-serif;
-  font-weight: bold;
-  border: black solid 1px;
-  height: 28px;
-  width: 28px;
-  display: table-cell;
-  vertical-align: middle;
-}
-.cell.blocked {
-  background: black;
-}
-.selected {
-  background: wheat;
-  width: 20px;
-  height: 20px;
-  border: 4px solid teal;
-}
-.selected.blocked {
-  background: black;
-  width: 20px;
-  height: 20px;
-  border: 4px solid teal;
-}
-.highlighted:not(.selected):not(.blocked) {
-  background: wheat;
 }
 </style>

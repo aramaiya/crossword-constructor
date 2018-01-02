@@ -1,27 +1,32 @@
 <template>
   <div class="container">
-    <toolbar></toolbar>
-    <grid></grid>
+    <grid :cwd="editor.crossword" v-if="!!editor.crossword"></grid>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
+import { mapGetters } from "vuex";
 import Grid from "../grid/grid.vue";
-import Toolbar from "../toolbar.vue";
-import { $eventService, EventService } from "../../infra/event-service";
-import {$crosswordBuilder} from "./crossword-builder"
+import bus from "../../bus";
+import { Crossword } from "../../types/common";
 export default Vue.extend({
   name: "Builder",
-  data() {
-    return {};
+  mounted() {
+    bus.$on("new-puzzle-request", (p: { rows: number; cols: number }) => {
+      this.$store.dispatch("createPuzzle", { rows: p.rows, cols: p.cols });
+    });
+    this.$store.dispatch("createPuzzle", { rows: 15, cols: 15 });
+    console.log("state", this.$store.state.editor);
   },
-  created() {},
-  mounted() {},
   methods: {},
+  computed: {
+    ...mapGetters({
+      editor: "editor"
+    })
+  },
   components: {
-    Toolbar,
-    Grid
+    Grid,
   }
 });
 </script>

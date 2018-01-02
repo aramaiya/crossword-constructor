@@ -2,9 +2,17 @@
   <div>
     <div class="new-puzzle">
       <div class="dim-label">
-        <label for="rowsSelect">Rows</label><select id="rowsSelect" v-model="rows"><option v-for="(i,ix) in 47">{{i +3}}</option></select></div>
+        <label for="rowsSelect">Rows</label>
+        <select id="rowsSelect" v-model="rows">
+          <option v-for="(i,ix) in 47">{{i +3}}</option>
+        </select>
+      </div>
       <div class="dim-label">
-        <label for="colsSelect">Columns</label><select id="colsSelect" v-model="cols"><option v-for="(i,ix) in 47">{{i +3}}</option></select></div>
+        <label for="colsSelect">Columns</label>
+        <select id="colsSelect" v-model="cols">
+          <option v-for="(i,ix) in 47">{{i +3}}</option>
+        </select>
+      </div>
       <div>
         <button @click="createClicked">Create</button>
         <button @click="cancelClicked">Cancel</button>
@@ -13,9 +21,8 @@
   </div>
 </template>
 <script lang="ts">
-
-import {$builderModel} from "../models/builder-model";
 import Vue from "vue";
+import bus from "../bus";
 export default Vue.extend({
   name: "new-puzzle-dialog",
   data() {
@@ -24,16 +31,12 @@ export default Vue.extend({
       cols: 15
     };
   },
-  mounted() {
-    this.rows = $builderModel.rows;
-    this.cols = $builderModel.cols;
-  },
   methods: {
     cancelClicked() {
       this.$emit("cancel-click");
     },
     createClicked() {
-      $builderModel.createNewPuzzle(this.rows, this.cols);
+      bus.$emit("new-puzzle-request", { rows: this.rows, cols: this.cols });
       this.$emit("create-click");
     }
   }

@@ -3,17 +3,13 @@
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
-import { $builderModel } from './models/builder-model';
 
+import  store from "./store/store"
 Vue.config.productionTip = false
 
-$builderModel.createNewPuzzle(15,15);
-
-Vue.prototype.$hey = 'hey';
-let het = 'hey';
 new Vue({
   el: '#app',
-  router,
+  router, store,
   template: '<App/>',
   components: { App }
 })
