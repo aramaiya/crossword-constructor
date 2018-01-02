@@ -16,7 +16,7 @@ export interface Cell {
     circled: boolean;
 }
 
-interface CellConstructor {
+export var Cell: {
     new(value?: any): Cell;
 }
 
@@ -40,6 +40,7 @@ export enum Movement {
     Up,
     Down
 }
+
 export enum Mode {
     Fill = "Fill",
     Draw = "Draw",
@@ -48,13 +49,11 @@ export enum Mode {
     Complete = "Complete",
     Solve = "Solve"
 }
+
 export enum Symmetry {
     Radial = "Radial",
     Horizontal = "Horizontal",
     Vertical = "Vertical",
     None = "None"
 }
-
-
-export declare const $Cell: CellConstructor | CellConstructor;
 

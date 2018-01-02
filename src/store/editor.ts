@@ -33,6 +33,7 @@ const getters: GetterTree<EditorState, any> = {
 const actions: ActionTree<EditorState, any> = {
     loadEditor: (ctx, cwd: Crossword) => {
         ctx.commit("SET_PUZZLE", cwd);
+        setInterval(()=>{ctx.dispatch("savePuzzle")}, 5000);
     },
     changeValue: (ctx, { row, col, value }: { row: number, col: number, value: string }) => {
         ctx.commit("SET_VALUE", { row: row, col: col, value: value })

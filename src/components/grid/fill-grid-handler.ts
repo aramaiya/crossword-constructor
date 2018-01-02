@@ -1,4 +1,4 @@
-import { Keycodes } from '../../constants/keycodes';
+import { Keycodes } from '../../types/keycodes';
 import { GridHandler, GridData } from './grid-handler'
 import { Commander, Command } from './command-history'
 import { Cell, Direction, CellType, Movement } from '../../types/common'

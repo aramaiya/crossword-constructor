@@ -5,11 +5,11 @@
 <script lang="ts">
 import Vue from "vue";
 
-import { Cell, CellType, $Cell } from "../../types/common";
+import { Cell, CellType } from "../../types/common";
 export default Vue.extend({
   name: "CellComponent",
   props: {
-    cell: $Cell,
+    cell: Cell,
     selected: Boolean,
     highlighted: Boolean
   },

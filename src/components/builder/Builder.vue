@@ -16,7 +16,7 @@ export default Vue.extend({
     bus.$on("new-puzzle-request", (p: { rows: number; cols: number }) => {
       this.$store.dispatch("createPuzzle", { rows: p.rows, cols: p.cols });
     });
-    this.$store.dispatch("createPuzzle", { rows: 15, cols: 15 });
+    this.$store.dispatch("loadPuzzle");
     console.log("state", this.$store.state.editor);
   },
   methods: {},

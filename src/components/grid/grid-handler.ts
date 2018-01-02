@@ -23,6 +23,6 @@ export abstract class GridHandler {
     mouseOutHandler = (c: Cell, e: MouseEvent) => { };
     mouseUpHandler = (c: Cell, e: MouseEvent) => { };
     keyDownHandler = (e: KeyboardEvent) => { };
-
+    mouseExitHandler = (e: MouseEvent) => { };
 }
 
