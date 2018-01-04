@@ -26,7 +26,9 @@ export enum CellType {
 }
 
 export interface Session {
-    crossword: Crossword
+    id: string;
+    name: string;
+    crosswordId: string;
 }
 
 export enum Direction {

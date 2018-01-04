@@ -1,6 +1,4 @@
 import { Cell, Direction, Crossword, Mode, Symmetry } from "../../types/common";
-import { Store } from "vuex";
-
 
 export interface GridData {
     symmetry: Symmetry,
@@ -12,10 +10,8 @@ export interface GridData {
 }
 
 export abstract class GridHandler {
-    protected store: Store<any>;
     protected data: GridData;
-    constructor(store: Store<any>, data: GridData) {
-        this.store = store;
+    constructor(data: GridData) {
         this.data = data;
     }
     mouseDownHandler = (c: Cell, e: MouseEvent) => { };

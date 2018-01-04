@@ -1,7 +1,6 @@
 import { GridHandler, GridData } from './grid-handler'
-import { Store } from 'vuex';
 import { Cell, CellType } from '../../types/common';
-
+import util from './crossword-util';
 export class DrawGridHandler extends GridHandler {
     private mousePressed: boolean;
     private newType: CellType;
@@ -10,15 +9,14 @@ export class DrawGridHandler extends GridHandler {
         this.mousePressed = true;
         if (cell.type === CellType.Value) this.newType = CellType.Block;
         else this.newType = CellType.Value;
-        this.store.dispatch("changeType", { row: cell.position.row, col: cell.position.col, type: this.newType, symmetry: this.data.symmetry });
+        util(this.data.crossword).setType(cell.position.row, cell.position.col, this.newType, this.data.symmetry);
     }
-
 
     mouseOverHandler = (cell: Cell, e: MouseEvent) => {
         if (!this.mousePressed) return;
-        this.store.dispatch("changeType", { row: cell.position.row, col: cell.position.col, type: this.newType, symmetry: this.data.symmetry });
+        console.log(e);
+        util(this.data.crossword).setType(cell.position.row, cell.position.col, this.newType, this.data.symmetry);
     }
-
 
     mouseUpHandler = (cell: Cell, e: MouseEvent) => {
         this.mousePressed = false;

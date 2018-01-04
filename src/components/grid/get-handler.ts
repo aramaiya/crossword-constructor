@@ -1,12 +1,11 @@
 import { GridData } from "./grid-handler";
 import { FillGridHandler } from "./fill-grid-handler";
-import { Store } from "vuex";
 import { DrawGridHandler } from "./draw-grid-handler";
 import { Mode } from "../../types/common";
 
-export default (store: Store<any>, data: GridData) => {
-    let fgHandler = new FillGridHandler(store, data);
-    let dgHandler = new DrawGridHandler(store, data);
+export default (data: GridData) => {
+    let fgHandler = new FillGridHandler(data);
+    let dgHandler = new DrawGridHandler(data);
     return (mode: Mode) => {
         switch (mode) {
             case (Mode.Fill):

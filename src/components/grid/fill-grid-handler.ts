@@ -1,10 +1,8 @@
 import { Keycodes } from '../../types/keycodes';
-import { GridHandler, GridData } from './grid-handler'
-import { Commander, Command } from './command-history'
+import { GridHandler } from './grid-handler'
 import { Cell, Direction, CellType, Movement } from '../../types/common'
-import { Store } from 'vuex';
-import { EditorState } from '../../store/editor';
 import Vue from 'vue';
+import util from './crossword-util';
 export class FillGridHandler extends GridHandler {
     mouseDownHandler = (cell: Cell, e: MouseEvent) => {
         if (cell.id !== this.data.selected.id) {
@@ -15,7 +13,6 @@ export class FillGridHandler extends GridHandler {
             else this.changeDirection(Direction.Horizontal);
         }
     }
-
 
     keyDownHandler = (e: KeyboardEvent) => {
         let direction = this.data.direction;
@@ -51,7 +48,7 @@ export class FillGridHandler extends GridHandler {
         if (e.keyCode >= Keycodes.A && e.keyCode <= Keycodes.Z) {
             let val = String.fromCharCode(e.keyCode).toUpperCase();
 
-            this.store.dispatch("changeValue", { row: selected.position.row, col: selected.position.col, value: val})
+            util(this.data.crossword).setValue(selected.position.row, selected.position.col, val)
             if (direction === Direction.Horizontal) {
                 this.moveSelection(Movement.Right);
             } else {
@@ -61,7 +58,7 @@ export class FillGridHandler extends GridHandler {
             let type = CellType.Block;
             if (selected.type === CellType.Block) type = CellType.Value;
 
-            this.store.dispatch("changeType", { row: selected.position.row, col: selected.position.col, type: type, symmetry: this.data.symmetry  });
+            util(this.data.crossword).setType(selected.position.row, selected.position.col, type, this.data.symmetry)
 
             if (direction === Direction.Horizontal) {
                 this.moveSelection(Movement.Right);
@@ -77,7 +74,7 @@ export class FillGridHandler extends GridHandler {
                 }
             }
             selected = this.data.selected;
-            this.store.dispatch("changeValue", { row: selected.position.row, col: selected.position.col, value: "" })
+            util(this.data.crossword).setValue(selected.position.row, selected.position.col, "");
         }
 
     }

@@ -2,6 +2,16 @@
   <div class="toolbar">
     <div>
       <button v-on:click="newPuzzleVisible = true">New Puzzle</button>
+      <button v-on:click="$emit('save-click')">Save Puzzle</button>
+    </div>
+    <div>
+
+    </div>
+    <div>
+      <button @click="$emit('undo-click')">Undo</button>
+      <button @click="$emit('redo-click')">Redo</button>
+      <button @click="$emit('clear-all-click')">Clear All</button>
+      <button @click="$emit('clear-values-click')">Clear Values</button>
     </div>
     <div>
       <input type="radio" id="r" value="Radial" name="symmetry" v-model="symmetry">Radial</input>
@@ -31,7 +41,7 @@ export default Vue.extend({
     return {
       newPuzzleVisible: false,
       symmetry: this.initialSymmetry,
-      mode: this.initialMode,
+      mode: this.initialMode
     };
   },
   mounted() {

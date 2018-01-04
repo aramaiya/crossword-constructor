@@ -1,12 +1,17 @@
 <template>
   <div>
     <div>
-      <toolbar :initial-mode="mode" :initial-symmetry="symmetry"></toolbar>
+      <toolbar :initial-mode="mode" :initial-symmetry="symmetry" @clear-all-click="clearClick" @clear-values-click="clearValuesClick" @save-click="savePuzzleClick" @undo-click="undoClick" @redo-click="redoClick"></toolbar>
     </div>
-    <div class="grid" @keydown="handleKeyDown($event)" tabindex="1">
+    <div class="grid noselect" @keydown="handleKeyDown($event)" tabindex="1">
+      <svg :height="crossword.rows*40+4" :width="crossword.cols*40+4">
+        <g v-for="(row,r) in crossword.cells" :key="r" class="row">
+          <cell-component :cell="cell" v-for="(cell,c) in crossword.cells[r]" :key="cell.id" :highlighted="isHighlighted(cell)" :selected="isSelected(cell)" @mouseout.native="handleMouseOut(cell, $event)" @mouseup.native="handleMouseUp(cell, $event)" @mouseover.native="handleMouseOver(cell, $event)" @mousedown.native="handleMouseDown(cell, $event)"></cell-component>
+        </g>
+      </svg>
       <table class="container" v-if="!!cwd" @mouseleave="handleMouseExit($event)">
-        <div v-for="(row,r) in cwd.cells" :key="r" class="row">
-          <cell-component :cell="cell" v-for="(cell,c) in cwd.cells[r]" :key="cell.id" :highlighted="isHighlighted(cell)" :selected="isSelected(cell)" @mouseout.native="handleMouseOut(cell, $event)" @mouseup.native="handleMouseUp(cell, $event)" @mouseover.native="handleMouseOver(cell, $event)" @mousedown.native="handleMouseDown(cell, $event)"></cell-component>
+        <div v-for="(row,r) in crossword.cells" :key="r" class="row">
+          <cell-component :cell="cell" v-for="(cell,c) in crossword.cells[r]" :key="cell.id" :highlighted="isHighlighted(cell)" :selected="isSelected(cell)" @mouseout.native="handleMouseOut(cell, $event)" @mouseup.native="handleMouseUp(cell, $event)" @mouseover.native="handleMouseOver(cell, $event)" @mousedown.native="handleMouseDown(cell, $event)"></cell-component>
         </div>
       </table>
     </div>
@@ -21,6 +26,9 @@ import CellComponent from "./cell-component.vue";
 import { GridData, GridHandler } from "./grid-handler";
 import getHandler from "./get-handler";
 import { Cell, Direction, Mode, Crossword, Symmetry } from "../../types/common";
+import utils from "./crossword-util";
+import _ from "lodash";
+import stack from "./undo-redo-stack";
 export default Vue.extend({
   name: "Grid",
   props: ["cwd"],
@@ -31,6 +39,36 @@ export default Vue.extend({
   mounted() {
     bus.$on("mode-change", (m: Mode) => (this.mode = m));
     bus.$on("symmetry-change", (m: Symmetry) => (this.symmetry = m));
+    stack.save(this.$data as GridData);
+  },
+  methods: {
+    clearClick() {
+      utils(this.crossword).clearAll();
+    },
+    undoClick() {
+      (this as any).undoing = true;
+      let oldSate = stack.undo();
+      if (!!oldSate) Object.assign(this.$data, oldSate);
+    },
+    redoClick() {
+      (this as any).undoing = true;
+      let oldSate = stack.redo();
+      if (!!oldSate) Object.assign(this.$data, oldSate);
+    },
+    clearValuesClick() {
+      utils(this.crossword).clearValues();
+    },
+    savePuzzleClick() {
+      this.$store.dispatch("saveSession", this.crossword);
+    },
+    updateStack: _.debounce(
+      function(this: any) {
+        console.log("cwd updated");
+        stack.save(this.$data);
+      },
+      500,
+      { trailing: true }
+    )
   },
   computed: {
     handleKeyDown(): Function {
@@ -52,7 +90,7 @@ export default Vue.extend({
       return this.handler.mouseExitHandler;
     },
     handler(): GridHandler {
-      return getHandler(this.$store, this.$data as GridData)(this.mode);
+      return getHandler(this.$data as GridData)(this.mode);
     },
 
     isSelected(): Function {
@@ -72,18 +110,28 @@ export default Vue.extend({
   },
   watch: {
     cwd: function(newCwd: Crossword) {
+      if (newCwd.id === this.crossword.id) return;
       Object.assign(this.$data, initData(newCwd));
+      stack.reset();
+    },
+    crossword: {
+      handler: function(newCwd, oldCwd) {
+        if (!(this as any).undoing) this.updateStack();
+        (this as any).undoing = false;
+      },
+      deep: true
     }
   }
 });
 const initData = (cwd: Crossword): GridData => {
   let highlighted: { [id: string]: boolean } = {};
-  cwd.cells[0].forEach(c => (highlighted[c.id] = true));
+  let crossword = JSON.parse(JSON.stringify(cwd)) as Crossword;
+  crossword.cells[0].forEach(c => (highlighted[c.id] = true));
   let selected = cwd.cells[0][0];
   return {
     mode: Mode.Fill,
     symmetry: Symmetry.Radial,
-    crossword: cwd,
+    crossword: crossword,
     selected: selected,
     direction: Direction.Horizontal as Direction,
     highlighted: highlighted
@@ -96,6 +144,15 @@ const initData = (cwd: Crossword): GridData => {
   display: flex;
   justify-content: center;
   position: relative;
+}
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }
 .grid:focus {
   outline: 0;
