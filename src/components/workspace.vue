@@ -1,23 +1,24 @@
 <template>
   <div class="container">
     <sessions-list :sessions="orderedSessions" @load-session-click="loadSession"></sessions-list>
-        <div>
-      <toolbar :initial-mode="mode" :initial-symmetry="symmetry" @clear-all-click="clearClick" @clear-values-click="clearValuesClick" @save-click="savePuzzleClick" @undo-click="undoClick" @redo-click="redoClick"></toolbar>
-    </div>
+    
     <debounced-input :initial-value="!!activeSession? activeSession.name : 'My crossword'" @change="nameChanged"></debounced-input>
+    <div>
     <grid ref="_grid" class="editor" :cwd="crossword(activeSession.crosswordId)" v-if="activeSession"></grid>
+    </div>
+    <snaps-list :sessions="snaps" @load-snap-click="loadSnap"></snaps-list>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import { mapGetters } from "vuex";
-import Grid from "../grid/grid.vue";
-import SessionsList from "../sessions-list.vue";
-import DebouncedInput from "../debounced-input.vue";
-import bus from "../../bus";
-import { Crossword } from "../../types/common";
-import Toolbar from "../toolbar.vue";
+import Grid from "./grid/grid.vue";
+import SessionsList from "./sessions-list.vue";
+import SnapsList from "./snaps-list.vue";
+import DebouncedInput from "./debounced-input.vue";
+import bus from "../bus";
+import { Crossword } from "../types/common";
 export default Vue.extend({
   name: "Builder",
   mounted() {
@@ -31,6 +32,9 @@ export default Vue.extend({
   methods: {
     loadSession(id: string) {
       this.$store.dispatch("loadSavedSession", id);
+    },
+    loadSnap(id: string) {
+      this.$store.dispatch("loadSnap", id);
     },
     nameChanged(newName: string) {
       console.log("name changed", newName);
@@ -49,16 +53,15 @@ export default Vue.extend({
     clearValuesClick() {
       //this.$refs._grid.clearValues();
     },
-    savePuzzleClick() {
-      this.$store.dispatch("saveSession", this.$refs.crossword);
-    },
+
   },
   computed: {
     ...mapGetters({
       editor: "editor",
       orderedSessions: "orderedSessions",
       activeSession: "activeSession",
-      crossword: "crossword"
+      crossword: "crossword",
+      snaps: "snaps"
     }),
     initialNameValue() {
       if (!(this as any).activeSessions) return "My crossword..";
@@ -66,7 +69,7 @@ export default Vue.extend({
     }
   },
   components: {
-    Grid, SessionsList, DebouncedInput, Toolbar
+    Grid, SessionsList, DebouncedInput, SnapsList
   }
 });
 </script>

@@ -3,6 +3,7 @@
     <div>
       <button v-on:click="newPuzzleVisible = true">New Puzzle</button>
       <button v-on:click="$emit('save-click')">Save Puzzle</button>
+      <button v-on:click="$emit('save-snap-click')">Save Snap</button>
     </div>
     <div>
 

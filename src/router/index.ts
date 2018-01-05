@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Builder from '@/components/builder/builder.vue'
+import Workspace from '@/components/workspace.vue'
 
 Vue.use(Router)
 
@@ -8,8 +8,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Builder',
-      component: Builder
+      name: 'Workspace',
+      component: Workspace
     }
   ]
 })

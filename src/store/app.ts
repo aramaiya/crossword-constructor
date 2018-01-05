@@ -39,6 +39,10 @@ const getters: GetterTree<AppState, any> = {
     crossword: (state) => {
         return (id: string) => state.crosswords[id];
     },
+    snaps: (state, getters) => {
+        if (!!getters.activeSession) return getters.activeSession.snaps;
+        return [];
+    }
 
 }
 function S4() {
@@ -94,6 +98,18 @@ const actions: ActionTree<AppState, any> = {
         if (!session) return;
         let cwd = ctx.getters.crossword(session.crosswordId);
         ctx.state.activeSessionId = id;
+        ctx.state.unsavedSession = null;
+    },
+    loadSnap: (ctx, id: string) => {
+        let session: Session = ctx.getters.activeSession;
+        if (!session) return;
+        let cwd = ctx.getters.crossword(id);
+        let activeCwd = ctx.getters.crossword(session.crosswordId);
+        let clone = JSON.parse(JSON.stringify(cwd));
+        clone.id = session.crosswordId;
+        Vue.set(ctx.state.crosswords, clone.id, clone);
+        //activeCwd.id = session.crosswordId;
+
     },
     createPuzzle: (ctx, { rows, cols }) => {
         let cells = [[]] as Cell[][];
@@ -115,12 +131,21 @@ const actions: ActionTree<AppState, any> = {
         let sesh: Session = {
             name: "Untitled..",
             id: S4(),
-            crosswordId: cwd.id
+            crosswordId: cwd.id,
+            snaps: []
         }
         ctx.state.crosswords[cwd.id] = cwd;
         ctx.state.unsavedSession = sesh;
         ctx.state.unsavedCrossword = cwd;
         ctx.state.activeSessionId = sesh.id;
+    },
+    saveSnap(ctx, cwd: Crossword) {
+        if (!!ctx.state.unsavedSession) return;
+        cwd = JSON.parse(JSON.stringify(cwd))
+        cwd.id = S4();
+        Vue.set(ctx.state.crosswords, cwd.id, cwd);
+        if (!ctx.getters.activeSession.snaps) Vue.set(ctx.getters.activeSession, 'snaps', [])
+        ctx.getters.activeSession.snaps.push(cwd.id);
     }
 }
 

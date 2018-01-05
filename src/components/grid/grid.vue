@@ -1,5 +1,8 @@
 <template>
   <div>
+    <div>
+      <toolbar :initial-mode="mode" :initial-symmetry="symmetry" @clear-all-click="clearAllClick" @clear-values-click="clearValuesClick" @save-click="savePuzzleClick" @save-snap-click="saveSnapClick" @undo-click="undoClick" @redo-click="redoClick"></toolbar>
+    </div>
     <div class="grid noselect" @keydown="handleKeyDown($event)" tabindex="1">
       <svg :height="crossword.rows*40+4" :width="crossword.cols*40+4">
         <g v-for="(row,r) in crossword.cells" :key="r" class="row">
@@ -26,24 +29,24 @@ import { Cell, Direction, Mode, Crossword, Symmetry } from "../../types/common";
 import utils from "./crossword-util";
 import _ from "lodash";
 import stack from "./undo-redo-stack";
+import Toolbar from "../toolbar.vue";
 export default Vue.extend({
   name: "Grid",
   props: ["cwd"],
   data() {
     return initData(this.cwd);
   },
-  components: { CellComponent },
+  components: { CellComponent, Toolbar },
   mounted() {
-    
     bus.$on("mode-change", (m: Mode) => (this.mode = m));
     bus.$on("symmetry-change", (m: Symmetry) => (this.symmetry = m));
     stack.save(this.$data as GridData);
   },
   methods: {
-    clearAll() {
+    clearAllClick() {
       utils(this.crossword).clearAll();
     },
-    clearValues() {
+    clearValuesClick() {
       utils(this.crossword).clearValues();
     },
     updateStack: _.debounce(
@@ -54,15 +57,21 @@ export default Vue.extend({
       500,
       { trailing: true }
     ),
-    undo() {
+    undoClick() {
       (this as any).undoing = true;
       let oldSate = stack.undo();
       if (!!oldSate) Object.assign(this.$data, oldSate);
     },
-    redo() {
+    redoClick() {
       (this as any).undoing = true;
       let oldSate = stack.redo();
       if (!!oldSate) Object.assign(this.$data, oldSate);
+    },
+    savePuzzleClick() {
+      this.$store.dispatch("saveSession", this.crossword);
+    },
+    saveSnapClick() {
+      this.$store.dispatch("saveSnap", this.crossword);
     }
   },
   computed: {
@@ -105,9 +114,10 @@ export default Vue.extend({
   },
   watch: {
     cwd: function(newCwd: Crossword) {
-      if (newCwd.id === this.crossword.id) return;
+    //  if (newCwd.id === this.crossword.id) return;
+          if (newCwd.id !== this.crossword.id) stack.reset();
+
       Object.assign(this.$data, initData(newCwd));
-      stack.reset();
     },
     crossword: {
       handler: function(newCwd, oldCwd) {

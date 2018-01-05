@@ -29,6 +29,7 @@ export interface Session {
     id: string;
     name: string;
     crosswordId: string;
+    snaps: number[]
 }
 
 export enum Direction {

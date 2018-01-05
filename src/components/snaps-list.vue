@@ -1,7 +1,7 @@
 <template>
-  <div class="sidebar left">
-    <div class="row" v-for="s in sessions">
-      <div  :class="cssClass(s)" @click="$emit('load-session-click', session(s).id)">{{session(s).name}} - {{crossword(session(s).crosswordId).rows}} x {{crossword(session(s).crosswordId).cols}}</div>
+  <div class="sidebar right">
+    <div class="row" v-for="s in snaps">
+      <div  :class="cssClass(s)" @click="$emit('load-snap-click', s)">{{s}} - {{crossword(s).rows}} x {{crossword(s).cols}}</div>
     </div>
   </div>
 </template>
@@ -12,20 +12,21 @@ import NewPuzzleDialog from "./new-puzzle-dialog.vue";
 import { Crossword } from "../types/common";
 import bus from "../bus";
 export default Vue.extend({
-  name: "SessionsList",
+  name: "SnapsList",
   props: ["sessions"],
   computed: {
     ...mapGetters({
       editor: "editor",
       activeSession: "activeSession",
       crossword: "crossword",
-      session: "session"
+      session: "session",
+      snaps: "snaps"
     }),
     cssClass: function() {
       return (sessionId: string)=> {
         return {
           button: true,
-          active: sessionId === (this as any).activeSession.id
+         // active: sessionId === (this as any).activeSession.id
         }
       }
     }
@@ -37,8 +38,8 @@ export default Vue.extend({
   width: 300px;
   position: absolute;
 }
-.sidebar.left {
-left: 0px;
+.sidebar.right {
+right: 0px;
 }
 .row {
   height: 60px;
