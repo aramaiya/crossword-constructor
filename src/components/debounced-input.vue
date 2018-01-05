@@ -5,23 +5,19 @@
 </template>
 <script lang="ts">
 import Vue from "vue";
+import _ from "lodash";
+
 export default Vue.extend({
-  name: "SingleInput",
+  name: "DebouncedInput",
   props: ["initialValue"],
   data() {
     return {
       value: this.initialValue
     };
   },
-  computed: {
-    handleInputChange() {
-      let delayId: number;
-      return () => {
-        if (!!delayId) clearTimeout(delayId);
-        console.log(delayId);
-        delayId = setTimeout(() => this.$emit("change", this.value), 1000);
-      };
-    }
+  methods: {
+    handleInputChange: _.debounce(function(this:any) {
+        this.$emit("change", this.value)}, 500)
   },
   watch: {
     initialValue: function(val){

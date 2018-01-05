@@ -1,8 +1,5 @@
 <template>
   <div>
-    <div>
-      <toolbar :initial-mode="mode" :initial-symmetry="symmetry" @clear-all-click="clearClick" @clear-values-click="clearValuesClick" @save-click="savePuzzleClick" @undo-click="undoClick" @redo-click="redoClick"></toolbar>
-    </div>
     <div class="grid noselect" @keydown="handleKeyDown($event)" tabindex="1">
       <svg :height="crossword.rows*40+4" :width="crossword.cols*40+4">
         <g v-for="(row,r) in crossword.cells" :key="r" class="row">
@@ -20,7 +17,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import Toolbar from "../toolbar.vue";
+
 import bus from "../../bus";
 import CellComponent from "./cell-component.vue";
 import { GridData, GridHandler } from "./grid-handler";
@@ -35,31 +32,19 @@ export default Vue.extend({
   data() {
     return initData(this.cwd);
   },
-  components: { CellComponent, Toolbar },
+  components: { CellComponent },
   mounted() {
+    
     bus.$on("mode-change", (m: Mode) => (this.mode = m));
     bus.$on("symmetry-change", (m: Symmetry) => (this.symmetry = m));
     stack.save(this.$data as GridData);
   },
   methods: {
-    clearClick() {
+    clearAll() {
       utils(this.crossword).clearAll();
     },
-    undoClick() {
-      (this as any).undoing = true;
-      let oldSate = stack.undo();
-      if (!!oldSate) Object.assign(this.$data, oldSate);
-    },
-    redoClick() {
-      (this as any).undoing = true;
-      let oldSate = stack.redo();
-      if (!!oldSate) Object.assign(this.$data, oldSate);
-    },
-    clearValuesClick() {
+    clearValues() {
       utils(this.crossword).clearValues();
-    },
-    savePuzzleClick() {
-      this.$store.dispatch("saveSession", this.crossword);
     },
     updateStack: _.debounce(
       function(this: any) {
@@ -68,7 +53,17 @@ export default Vue.extend({
       },
       500,
       { trailing: true }
-    )
+    ),
+    undo() {
+      (this as any).undoing = true;
+      let oldSate = stack.undo();
+      if (!!oldSate) Object.assign(this.$data, oldSate);
+    },
+    redo() {
+      (this as any).undoing = true;
+      let oldSate = stack.redo();
+      if (!!oldSate) Object.assign(this.$data, oldSate);
+    }
   },
   computed: {
     handleKeyDown(): Function {
