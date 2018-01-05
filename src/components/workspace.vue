@@ -4,7 +4,7 @@
     
     <debounced-input :initial-value="!!activeSession? activeSession.name : 'My crossword'" @change="nameChanged"></debounced-input>
     <div>
-    <grid ref="_grid" class="editor" :cwd="crossword(activeSession.crosswordId)" v-if="activeSession"></grid>
+    <editor :cwd="crossword(activeSession.crosswordId)" v-if="activeSession"></editor>
     </div>
     <snaps-list :sessions="snaps" @load-snap-click="loadSnap"></snaps-list>
   </div>
@@ -13,7 +13,7 @@
 <script lang="ts">
 import Vue from "vue";
 import { mapGetters } from "vuex";
-import Grid from "./grid/grid.vue";
+import Editor from "./editor/editor.vue";
 import SessionsList from "./sessions-list.vue";
 import SnapsList from "./snaps-list.vue";
 import DebouncedInput from "./debounced-input.vue";
@@ -40,20 +40,6 @@ export default Vue.extend({
       console.log("name changed", newName);
       this.$store.dispatch("updateName", newName);
     },
-    clearClick() {
-      (this.$refs._grid as any).clearAll();
-    },
-    undoClick() {
-      //this.$refs._grid.undo();
-
-    },
-    redoClick() {
-      //this.$refs._grid.redo();
-    },
-    clearValuesClick() {
-      //this.$refs._grid.clearValues();
-    },
-
   },
   computed: {
     ...mapGetters({
@@ -69,7 +55,7 @@ export default Vue.extend({
     }
   },
   components: {
-    Grid, SessionsList, DebouncedInput, SnapsList
+    Editor, SessionsList, DebouncedInput, SnapsList
   }
 });
 </script>
@@ -83,6 +69,6 @@ export default Vue.extend({
 .editor {
   position: absolute;
   left: 300px;
-  width: calc(100% - 300px);
+  width: calc(100% - 600px);
 }
 </style>

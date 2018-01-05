@@ -1,7 +1,8 @@
 <template>
   <div class="sidebar right">
     <div class="row" v-for="s in snaps">
-      <div  :class="cssClass(s)" @click="$emit('load-snap-click', s)">{{s}} - {{crossword(s).rows}} x {{crossword(s).cols}}</div>
+      <div class="snap-preview" v-show="s===previewingId"><grid :cells="crossword(s).cells"></grid></div>
+      <div :class="cssClass(s)" @click="$emit('load-snap-click', s)" @mouseover="mouseEntered(s)" @mouseleave="mouseLeft(s)">{{s}} - {{crossword(s).rows}} x {{crossword(s).cols}}</div>
     </div>
   </div>
 </template>
@@ -10,10 +11,27 @@ import Vue from "vue";
 import { mapGetters } from "vuex";
 import NewPuzzleDialog from "./new-puzzle-dialog.vue";
 import { Crossword } from "../types/common";
+import Grid from "./grid/grid.vue"
 import bus from "../bus";
 export default Vue.extend({
   name: "SnapsList",
   props: ["sessions"],
+  components: {Grid},
+  data() {
+    return {
+      previewingId: null
+    }
+  },
+  methods: {
+    mouseEntered(id: string) {
+      console.log('mouse enter')
+      this.previewingId = id;
+    },
+    mouseLeft() {
+      console.log('mouse leave')
+      this.previewingId = null;
+    },
+  },
   computed: {
     ...mapGetters({
       editor: "editor",
@@ -34,6 +52,13 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
+.snap-preview {
+  position: absolute;
+  top: 0;
+  right: 300px;
+  transform-origin: top right;
+  transform: scale(.5);
+}
 .sidebar {
   width: 300px;
   position: absolute;
@@ -42,6 +67,7 @@ export default Vue.extend({
 right: 0px;
 }
 .row {
+  position: relative;
   height: 60px;
 }
 .button {

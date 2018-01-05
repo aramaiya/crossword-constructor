@@ -1,7 +1,5 @@
 <template>
-  <div>
     <input type="text" @keydown="handleInputChange()" v-model="value"></input>
-  </div>
 </template>
 <script lang="ts">
 import Vue from "vue";
