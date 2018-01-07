@@ -27,7 +27,6 @@ export default Vue.extend({
   mounted() {
     bus.$on("mode-change", (m: Mode) => (this.mode = m));
     bus.$on("symmetry-change", (m: Symmetry) => (this.symmetry = m));
-    stack.save(this.$data as GridData);
   },
   methods: {
     clearAllClick() {
@@ -45,14 +44,20 @@ export default Vue.extend({
       { trailing: true }
     ),
     undoClick() {
-      (this as any).undoing = true;
       let oldSate = stack.undo();
-      if (!!oldSate) Object.assign(this.$data, oldSate);
+      console.log("undo clicked. old state", oldSate);
+      if (!!oldSate) {
+        (this as any).undoing = true;
+        Object.assign(this.$data, oldSate);
+      }
     },
     redoClick() {
       (this as any).undoing = true;
       let oldSate = stack.redo();
-      if (!!oldSate) Object.assign(this.$data, oldSate);
+      if (!!oldSate) {
+        (this as any).undoing = true;
+        Object.assign(this.$data, oldSate);
+      }
     },
     savePuzzleClick() {
       this.$store.dispatch("saveSession", this.crossword);
@@ -95,9 +100,13 @@ export default Vue.extend({
   watch: {
     cwd: function(newCwd: Crossword) {
       //  if (newCwd.id === this.crossword.id) return;
-      if (newCwd.id !== this.crossword.id) stack.reset();
+      if (newCwd.id !== this.crossword.id) {
+        stack.reset();
 
-      Object.assign(this.$data, initData(newCwd));
+        Object.assign(this.$data, initData(newCwd));
+      } else{
+        Object.assign(this.$data.crossword, newCwd);
+      }
     },
     crossword: {
       handler: function(newCwd, oldCwd) {
@@ -125,7 +134,6 @@ const initData = (cwd: Crossword): GridData => {
 </script>
 
 <style scoped lang="scss">
-
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none; /* Safari */

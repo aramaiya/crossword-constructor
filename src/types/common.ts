@@ -1,8 +1,24 @@
+
+export interface Session {
+    id: number;
+    name: string;
+    crosswordId: number;
+    createdDate: Date;
+    modifiedDate: Date;
+}
+
 export interface Crossword {
-    id: string;
+    id: number;
     rows: number;
     cols: number;
     cells: Cell[][];
+}
+
+export interface Snap {
+    id: number;
+    crosswordId: number;
+    createdDate: Date;
+    sessionId: number;
 }
 
 export interface Cell {
@@ -23,13 +39,6 @@ export var Cell: {
 export enum CellType {
     Value,
     Block,
-}
-
-export interface Session {
-    id: string;
-    name: string;
-    crosswordId: string;
-    snaps: number[]
 }
 
 export enum Direction {

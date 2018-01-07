@@ -1,8 +1,15 @@
 <template>
-  <div class="sidebar left">
-    <div class="row" v-for="s in sessions">
-      <div  :class="cssClass(s)" @click="$emit('load-session-click', session(s).id)">{{session(s).name}} - {{crossword(session(s).crosswordId).rows}} x {{crossword(session(s).crosswordId).cols}}</div>
+  <div class="container">
+    <div class="tile button" @click="onCreateClick">
+      <div>
+        <span>+</span>
+      </div>
     </div>
+    <div v-for="s in orderedSessions" :class="cssClass(s)" @click="$emit('session-click', session(s).id)">
+      <div>{{session(s).name}} <br/> {{crossword(session(s).crosswordId).rows}} x {{crossword(session(s).crosswordId).cols}}</div>
+    </div>
+    <new-puzzle-dialog class="floater" v-if="isNewDialogControlVisible" @create="onCreate" @cancel="onCancel"></new-puzzle-dialog>
+
   </div>
 </template>
 <script lang="ts">
@@ -14,44 +21,71 @@ import bus from "../bus";
 export default Vue.extend({
   name: "SessionsList",
   props: ["sessions"],
+  components: { NewPuzzleDialog },
+  methods: {
+    onCancel() {
+      console.log("cancel click");
+      this.isNewDialogControlVisible = false;
+    },
+    onCreateClick(v: string) {
+      console.log("create click", v);
+      this.isNewDialogControlVisible = true;
+    },
+    onCreate(id: string) {
+      console.log("create click", id);
+      this.isNewDialogControlVisible = false;
+      this.$emit("session-click", id);
+    }
+  },
+  data() {
+    return {
+      isNewDialogControlVisible: false
+    };
+  },
   computed: {
     ...mapGetters({
       editor: "editor",
       activeSession: "activeSession",
+      orderedSessions: "orderedSessions",
       crossword: "crossword",
       session: "session"
     }),
     cssClass: function() {
-      return (sessionId: string)=> {
+      return (sessionId: string) => {
         return {
+          tile: true,
           button: true,
-          active: sessionId === (this as any).activeSession.id
-        }
-      }
+          active:
+            (this as any).activeSession &&
+            sessionId === (this as any).activeSession.id
+        };
+      };
     }
   }
 });
 </script>
 <style lang="scss" scoped>
-.sidebar {
-  width: 300px;
+.floater {
   position: absolute;
 }
-.sidebar.left {
-left: 0px;
+.container {
+  width: 800px;
+  display: flex;
+  flex-wrap: wrap;
 }
-.row {
-  height: 60px;
+.tile {
+  width: 250px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  border: 2px solid silver;
+  border-radius: 5px;
 }
 .button {
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 60px;
-  margin: 2px;
-  border: 2px solid silver;
 }
 .button:hover {
   background: silver;

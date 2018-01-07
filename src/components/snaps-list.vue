@@ -1,8 +1,9 @@
 <template>
   <div class="sidebar right">
     <div class="row" v-for="s in snaps">
-      <div class="snap-preview" v-show="s===previewingId"><grid :cells="crossword(s).cells"></grid></div>
-      <div :class="cssClass(s)" @click="$emit('load-snap-click', s)" @mouseover="mouseEntered(s)" @mouseleave="mouseLeft(s)">{{s}} - {{crossword(s).rows}} x {{crossword(s).cols}}</div>
+      <div class="snap-preview" v-show="s===previewingId"><grid :cells="crossword(s.crosswordId).cells"></grid></div>
+      <div :class="cssClass(s)" @click="$emit('load-snap-click', s.crosswordId)" @mouseover="mouseEntered(s)" @mouseleave="mouseLeft(s)">{{s.createdDate}}</div>
+      <div style="position: absolute; left: 275px; top: 25px; cursor: pointer" @click="onClick(s.id)">X</div>
     </div>
   </div>
 </template>
@@ -15,7 +16,7 @@ import Grid from "./grid/grid.vue"
 import bus from "../bus";
 export default Vue.extend({
   name: "SnapsList",
-  props: ["sessions"],
+  props: ["snaps"],
   components: {Grid},
   data() {
     return {
@@ -31,6 +32,10 @@ export default Vue.extend({
       console.log('mouse leave')
       this.previewingId = null;
     },
+    onClick(id: number) {
+      console.log(id);
+      this.$store.dispatch("deleteSnap", id);
+    }
   },
   computed: {
     ...mapGetters({
@@ -38,7 +43,6 @@ export default Vue.extend({
       activeSession: "activeSession",
       crossword: "crossword",
       session: "session",
-      snaps: "snaps"
     }),
     cssClass: function() {
       return (sessionId: string)=> {
@@ -75,7 +79,7 @@ right: 0px;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+  width: calc(100% - 50px);
   height: 60px;
   margin: 2px;
   border: 2px solid silver;

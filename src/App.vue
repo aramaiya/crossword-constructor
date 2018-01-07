@@ -1,13 +1,20 @@
 <template>
   <div id="app">
-    <router-view/>
+    Hello!
+    <navbar></navbar>
+    <router-view />
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import Vue from 'vue';
+import Navbar from './components/navbar.vue'
 export default Vue.extend({
-  name: 'app'
+  name: 'app',
+  components: {Navbar},
+  mounted(){
+    this.$store.dispatch("loadSessions")
+  }
 })
 </script>
 

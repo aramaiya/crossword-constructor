@@ -1,18 +1,21 @@
 import Vuex, { GetterTree } from 'vuex'
 import { MutationTree, ActionTree } from 'vuex'
-import { Cell, CellType, Crossword, Movement, Direction, Symmetry, Session } from '../types/common'
+import { Cell, CellType, Crossword, Movement, Direction, Symmetry, Session, Snap } from '../types/common'
 import Vue from 'vue';
-
+import LS from '../persistence/local-storage'
 export interface AppState {
-    unsavedSession: Session;
-    unsavedCrossword: Crossword;
-    activeSessionId: string;
-    sessions: { [id: string]: Session };
-    orderedSessions: string[];
-    crosswords: { [id: string]: Crossword };
+    activeSessionId: number;
+    sessions: { [id: number]: Session };
+    orderedSessions: number[];
+    crosswords: { [id: number]: Crossword };
+    snaps: { [id: number]: Snap };
+    orderedSnaps: number[];
 }
 
 const mutations: MutationTree<AppState> = {
+    SAVE_SESSION: (ctx, session: Session) => {
+
+    }
 }
 
 const getters: GetterTree<AppState, any> = {
@@ -29,76 +32,48 @@ const getters: GetterTree<AppState, any> = {
     },
     activeSession: (state) => {
         let sesh: Session;
-        if (!!state.activeSessionId) sesh= state.sessions[state.activeSessionId];
-        if (!sesh) sesh = state.unsavedSession
+        if (!!state.activeSessionId) sesh = state.sessions[state.activeSessionId];
         return sesh;
     },
     session: (state) => {
-        return (id: string) => state.sessions[id];
+        return (id: number) => {
+            return state.sessions[id];
+        }
     },
     crossword: (state) => {
-        return (id: string) => state.crosswords[id];
+        return (id: number) => state.crosswords[id];
     },
-    snaps: (state, getters) => {
-        if (!!getters.activeSession) return getters.activeSession.snaps;
-        return [];
+    orderedSnaps: (state, getters) => {
+        return (id: number) => {
+            return state.orderedSnaps.map(s=>state.snaps[s]).filter(s=>s.sessionId === id);
+        }
     }
 
-}
-function S4() {
-    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
 }
 
 const actions: ActionTree<AppState, any> = {
     saveSession: (ctx, cwd: Crossword) => {
-        let sesh: Session = ctx.getters.activeSession;
-
-        
-        if (!ctx.state.sessions[sesh.id]) {
-            Vue.set(ctx.state.sessions, sesh.id, sesh);
-            ctx.state.orderedSessions.push(sesh.id);
-        }
-        else {
-            Vue.set(ctx.state.sessions, sesh.id, sesh);
-        }
-        Vue.set(ctx.state.crosswords, cwd.id, cwd);
-
-        localStorage.setItem("sessions", JSON.stringify(ctx.state.orderedSessions.map(s=>ctx.getters.session(s))));
-        localStorage.setItem("crosswords", JSON.stringify(ctx.state.crosswords));
-
-        ctx.state.unsavedSession = null;
-        ctx.state.unsavedCrossword = null;
-    },
-    updateName: (ctx, name: string) => {
-        ctx.getters.activeSession.name = name;
+        LS.saveCrossword(cwd);
+        ctx.dispatch("loadSessions");
     },
     loadSessions: (ctx) => {
-        let str1 = localStorage.getItem("sessions");
-        let str2 = localStorage.getItem("crosswords");
-        let sessionList: Session[] = [];
-
-
-        let crosswords = {};
-        if (!!str1) sessionList = JSON.parse(str1);
-        if (!!str2) crosswords = JSON.parse(str2);
-        let sessions: { [id: string]: Session } = sessionList.reduce((p: { [id: string]: Session }, c) => {p[c.id] = c; return p}, {});
+        let sessionList = LS.getSessions();
+        let crosswordsList = LS.getCrosswords();
+        let snapsList = LS.getSnaps();
+        let snaps: { [id: number]: Snap } = snapsList.reduce((p: { [id: number]: Snap }, c) => { p[c.id] = c; return p }, {});
+        let sessions: { [id: number]: Session } = sessionList.reduce((p: { [id: number]: Session }, c) => { p[c.id] = c; return p }, {});
+        let cwds: { [id: number]: Crossword } = crosswordsList.reduce((p: { [id: number]: Crossword }, c) => { p[c.id] = c; return p }, {});
         Vue.set(ctx.state, 'sessions', sessions)
-        Vue.set(ctx.state, 'crosswords', crosswords);
-        Vue.set(ctx.state, 'orderedSessions', sessionList.map(s=>s.id));
+        Vue.set(ctx.state, 'crosswords', cwds);
+        Vue.set(ctx.state, 'orderedSessions', sessionList.map(s => s.id));
+        Vue.set(ctx.state, 'orderedSnaps', snapsList.map(s => s.id));
+        Vue.set(ctx.state, 'snaps', snaps);
     },
-    loadPuzzle: (ctx) => {
-        let pz = localStorage.getItem("puzzle");
-        if (!!pz) ctx.dispatch("loadEditor", JSON.parse(pz));
-        else {
-            ctx.dispatch("createPuzzle", { rows: 15, cols: 15 });
-        }
-    },
-    loadSavedSession: (ctx, id: string) => {
+    loadSavedSession: (ctx, id: number) => {
         let session: Session = ctx.getters.session(id);
         if (!session) return;
         let cwd = ctx.getters.crossword(session.crosswordId);
         ctx.state.activeSessionId = id;
-        ctx.state.unsavedSession = null;
     },
     loadSnap: (ctx, id: string) => {
         let session: Session = ctx.getters.activeSession;
@@ -108,44 +83,26 @@ const actions: ActionTree<AppState, any> = {
         let clone = JSON.parse(JSON.stringify(cwd));
         clone.id = session.crosswordId;
         Vue.set(ctx.state.crosswords, clone.id, clone);
-        //activeCwd.id = session.crosswordId;
-
     },
-    createPuzzle: (ctx, { rows, cols }) => {
-        let cells = [[]] as Cell[][];
+    createSession: (ctx, {name, rows, cols }) => {
+        return new Promise((rs,rj) => {
+        let resp = LS.newSession(name, rows, cols);
 
-        for (let r = 0; r < rows; r++) {
-            if (!cells[r]) cells[r] = [];
-            for (let c = 0; c < cols; c++) {
-                let cell: Cell = {
-                    id: r * cols + c,
-                    position: { row: r, col: c },
-                    type: CellType.Value,
-                    value: '',
-                    circled: false
-                };
-                cells[r][c] = cell;
-            }
-        }
-        let cwd = { rows: rows, cols: cols, cells: cells, id: S4() };
-        let sesh: Session = {
-            name: "Untitled..",
-            id: S4(),
-            crosswordId: cwd.id,
-            snaps: []
-        }
-        ctx.state.crosswords[cwd.id] = cwd;
-        ctx.state.unsavedSession = sesh;
-        ctx.state.unsavedCrossword = cwd;
-        ctx.state.activeSessionId = sesh.id;
+        ctx.dispatch("loadSessions");
+        rs(resp.session.id)
+        });
     },
     saveSnap(ctx, cwd: Crossword) {
-        if (!!ctx.state.unsavedSession) return;
-        cwd = JSON.parse(JSON.stringify(cwd))
-        cwd.id = S4();
-        Vue.set(ctx.state.crosswords, cwd.id, cwd);
-        if (!ctx.getters.activeSession.snaps) Vue.set(ctx.getters.activeSession, 'snaps', [])
-        ctx.getters.activeSession.snaps.push(cwd.id);
+        LS.newSnap(ctx.state.activeSessionId, cwd);
+        ctx.dispatch("loadSessions");
+    },
+    deleteSnap(ctx, id: number) {
+        LS.deleteSnap(id);
+        ctx.dispatch("loadSessions");
+    },
+    deleteSession(ctx, id: number) {
+        LS.deleteSession(id);
+        ctx.dispatch("loadSessions");
     }
 }
 
@@ -166,9 +123,9 @@ let defaultState: AppState = {
     activeSessionId: null,
     sessions: {},
     crosswords: {},
-    unsavedCrossword: null,
-    unsavedSession: null,
-    orderedSessions: []
+    orderedSessions: [],
+    orderedSnaps: [],
+    snaps: {}
 }
 
 export const module = {

@@ -1,7 +1,6 @@
 <template>
   <div class="toolbar">
     <div>
-      <button v-on:click="newPuzzleVisible = true">New Puzzle</button>
       <button v-on:click="$emit('save-click')">Save Puzzle</button>
       <button v-on:click="$emit('save-snap-click')">Save Snap</button>
     </div>
@@ -23,10 +22,6 @@
     <div>
       <input type="radio" value="Fill" name="mode" v-model="mode">Fill</input>
       <input type="radio" value="Draw" name="mode" v-model="mode">Draw</input>
-    </div>
-
-    <div class="overlay glass" v-if="newPuzzleVisible">
-      <new-puzzle-dialog @cancel-click="newPuzzleVisible = false" @create-click="newPuzzleVisible = false"></new-puzzle-dialog>
     </div>
   </div>
 </template>
