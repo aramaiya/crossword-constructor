@@ -1,13 +1,6 @@
 <template>
   <div class="toolbar">
     <div>
-      <button v-on:click="$emit('save-click')">Save Puzzle</button>
-      <button v-on:click="$emit('save-snap-click')">Save Snap</button>
-    </div>
-    <div>
-
-    </div>
-    <div>
       <button @click="$emit('undo-click')">Undo</button>
       <button @click="$emit('redo-click')">Redo</button>
       <button @click="$emit('clear-all-click')">Clear All</button>

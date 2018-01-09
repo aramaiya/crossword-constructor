@@ -1,6 +1,6 @@
 <template>
   <div class="editor" @keydown="handleKeyDown($event)" tabindex="1">
-    <toolbar :initial-mode="mode" :initial-symmetry="symmetry" @clear-all-click="clearAllClick" @clear-values-click="clearValuesClick" @save-click="savePuzzleClick" @save-snap-click="saveSnapClick" @undo-click="undoClick" @redo-click="redoClick"></toolbar>
+    <toolbar :initial-mode="mode" :initial-symmetry="symmetry" @clear-all-click="clearAllClick" @clear-values-click="clearValuesClick" @undo-click="undoClick" @redo-click="redoClick"></toolbar>
     <grid :cells="this.crossword.cells" :selected="this.selectedCell" :highlighted="this.highlightedCells" @cell-mouse-down="handleMouseDown" @cell-mouse-over="handleMouseOver" @cell-mouse-up="handleMouseUp" @grid-mouse-exit="handleMouseExit"></grid>
   </div>
 </template>
@@ -25,8 +25,8 @@ export default Vue.extend({
   },
   components: { Grid, Toolbar },
   mounted() {
-    bus.$on("mode-change", (m: Mode) => (this.mode = m));
-    bus.$on("symmetry-change", (m: Symmetry) => (this.symmetry = m));
+    this.$emit("crossword-set", this.crossword);
+    stack.save(this.$data as GridData);
   },
   methods: {
     clearAllClick() {
@@ -37,7 +37,6 @@ export default Vue.extend({
     },
     updateStack: _.debounce(
       function(this: any) {
-        console.log("cwd updated");
         stack.save(this.$data);
       },
       500,
@@ -45,7 +44,6 @@ export default Vue.extend({
     ),
     undoClick() {
       let oldSate = stack.undo();
-      console.log("undo clicked. old state", oldSate);
       if (!!oldSate) {
         (this as any).undoing = true;
         Object.assign(this.$data, oldSate);
@@ -58,12 +56,6 @@ export default Vue.extend({
         (this as any).undoing = true;
         Object.assign(this.$data, oldSate);
       }
-    },
-    savePuzzleClick() {
-      this.$store.dispatch("saveSession", this.crossword);
-    },
-    saveSnapClick() {
-      this.$store.dispatch("saveSnap", this.crossword);
     }
   },
   computed: {
@@ -104,7 +96,9 @@ export default Vue.extend({
         stack.reset();
 
         Object.assign(this.$data, initData(newCwd));
-      } else{
+
+        this.$emit("crossword-set", newCwd);
+      } else {
         Object.assign(this.$data.crossword, newCwd);
       }
     },
@@ -112,6 +106,8 @@ export default Vue.extend({
       handler: function(newCwd, oldCwd) {
         if (!(this as any).undoing) this.updateStack();
         (this as any).undoing = false;
+
+        this.$emit("crossword-update", newCwd);
       },
       deep: true
     }

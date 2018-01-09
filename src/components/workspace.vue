@@ -1,8 +1,12 @@
 <template>
-  <div class="container">
-    <debounced-input :initial-value="!!activeSession? activeSession.name : 'My crossword'" @change="nameChanged"></debounced-input>
+  <div class="container" v-if="activeSession">
+    <div>{{activeSession.name}}</div>
     <div>
-      <editor :cwd="crossword(activeSession.crosswordId)" v-if="activeSession"></editor>
+      <button v-on:click="onSaveClick" :disabled="!unsaved">Save Puzzle</button>
+      <button v-on:click="onSaveSnapClick">Save Snap</button>
+    </div>
+    <div>
+      <editor :cwd="crossword(activeSession.crosswordId)" @crossword-update="onCrosswordUpdate" @crossword-set="onCrosswordSet"></editor>
     </div>
     <snaps-list :snaps="orderedSnaps(sessionId)" @load-snap-click="loadSnap"></snaps-list>
   </div>
@@ -12,7 +16,6 @@
 import Vue from "vue";
 import { mapGetters } from "vuex";
 import Editor from "./editor/editor.vue";
-import SessionsList from "./sessions-list.vue";
 import SnapsList from "./snaps-list.vue";
 import DebouncedInput from "./debounced-input.vue";
 import bus from "../bus";
@@ -20,12 +23,13 @@ import { Crossword } from "../types/common";
 export default Vue.extend({
   name: "Builder",
   data() {
-    return { sessionId: null };
+    return {
+      sessionId: null,
+      crosswordInEdit: null,
+      unsaved: false
+    };
   },
   mounted() {
-    bus.$on("new-puzzle-request", (p: { rows: number; cols: number }) => {
-      this.$store.dispatch("createPuzzle", { rows: p.rows, cols: p.cols });
-    });
     this.$store.dispatch("loadSavedSession", this.$route.params["session_id"]);
     this.sessionId = this.$route.params["session_id"];
   },
@@ -36,9 +40,25 @@ export default Vue.extend({
     loadSnap(id: string) {
       this.$store.dispatch("loadSnap", id);
     },
-    nameChanged(newName: string) {
-      console.log("name changed", newName);
-      this.$store.dispatch("updateName", newName);
+    onCrosswordUpdate(cwd: Crossword) {
+      console.log("cwd udpated");
+      this.crosswordInEdit = cwd;
+      this.unsaved = true;
+    },
+    onCrosswordSet(cwd: Crossword) {
+      console.log("cwd set");
+      this.crosswordInEdit = cwd;
+      this.unsaved = false;
+    },
+    onSaveClick() {
+      if (!this.crosswordInEdit) return;
+      this.$store.dispatch("saveSession", this.crosswordInEdit).then(() => {
+        this.unsaved = false;
+      });
+    },
+    onSaveSnapClick() {
+      if (!this.crosswordInEdit) return;
+      this.$store.dispatch("saveSnap", this.crosswordInEdit);
     }
   },
   computed: {
@@ -54,9 +74,13 @@ export default Vue.extend({
       return (this as any).activeSession.name;
     }
   },
+  watch: {
+    "$route.params.session_id": function(id) {
+      console.log("route changed", id);
+    }
+  },
   components: {
     Editor,
-    SessionsList,
     DebouncedInput,
     SnapsList
   }

@@ -45,7 +45,7 @@ const getters: GetterTree<AppState, any> = {
     },
     orderedSnaps: (state, getters) => {
         return (id: number) => {
-            return state.orderedSnaps.map(s=>state.snaps[s]).filter(s=>s.sessionId === id);
+            return state.orderedSnaps.map(s => state.snaps[s]).filter(s => s.sessionId === id);
         }
     }
 
@@ -54,7 +54,7 @@ const getters: GetterTree<AppState, any> = {
 const actions: ActionTree<AppState, any> = {
     saveSession: (ctx, cwd: Crossword) => {
         LS.saveCrossword(cwd);
-        ctx.dispatch("loadSessions");
+        //ctx.dispatch("loadSessions");
     },
     loadSessions: (ctx) => {
         let sessionList = LS.getSessions();
@@ -84,21 +84,29 @@ const actions: ActionTree<AppState, any> = {
         clone.id = session.crosswordId;
         Vue.set(ctx.state.crosswords, clone.id, clone);
     },
-    createSession: (ctx, {name, rows, cols }) => {
-        return new Promise((rs,rj) => {
-        let resp = LS.newSession(name, rows, cols);
+    createSession: (ctx, { name, rows, cols }) => {
+        return new Promise((rs, rj) => {
+            let resp = LS.newSession(name, rows, cols);
 
-        ctx.dispatch("loadSessions");
-        rs(resp.session.id)
+            ctx.dispatch("loadSessions");
+            rs(resp.session.id)
         });
     },
     saveSnap(ctx, cwd: Crossword) {
-        LS.newSnap(ctx.state.activeSessionId, cwd);
-        ctx.dispatch("loadSessions");
+        let resp = LS.newSnap(ctx.state.activeSessionId, cwd);
+        ctx.state.orderedSnaps.push(resp.snap.id);
+        Vue.set(ctx.state.snaps, resp.snap.id.toString(), resp.snap);
+        Vue.set(ctx.state.crosswords, resp.crossword.id.toString(), resp.crossword);
     },
     deleteSnap(ctx, id: number) {
+        let snap = ctx.state.snaps[id];
+        let cwd = ctx.state.crosswords[snap.crosswordId];
         LS.deleteSnap(id);
-        ctx.dispatch("loadSessions");
+        
+        let idx = ctx.state.orderedSnaps.findIndex(s=>s===id);
+        ctx.state.orderedSnaps.splice(idx,1);
+        Vue.delete(ctx.state.snaps, snap.id.toString())
+        Vue.delete(ctx.state.crosswords, cwd.id.toString())
     },
     deleteSession(ctx, id: number) {
         LS.deleteSession(id);

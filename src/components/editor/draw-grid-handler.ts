@@ -14,7 +14,6 @@ export class DrawGridHandler extends GridHandler {
 
     mouseOverHandler = (cell: Cell, e: MouseEvent) => {
         if (!this.mousePressed) return;
-        console.log(e);
         util(this.data.crossword).setType(cell.position.row, cell.position.col, this.newType, this.data.symmetry);
     }
 
@@ -23,7 +22,6 @@ export class DrawGridHandler extends GridHandler {
     }
 
     mouseExitHandler = (e: MouseEvent) => {
-        console.log("mouse exit")
         this.mousePressed = false;
     }
 }

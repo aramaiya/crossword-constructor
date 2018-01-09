@@ -1,8 +1,10 @@
 <template>
   <div class="sidebar right">
     <div class="row" v-for="s in snaps">
-      <div class="snap-preview" v-show="s===previewingId"><grid :cells="crossword(s.crosswordId).cells"></grid></div>
-      <div :class="cssClass(s)" @click="$emit('load-snap-click', s.crosswordId)" @mouseover="mouseEntered(s)" @mouseleave="mouseLeft(s)">{{s.createdDate}}</div>
+      <div class="snap-preview" v-show="s===previewingId">
+        <grid :cells="crossword(s.crosswordId).cells"></grid>
+      </div>
+      <div :class="cssClass(s)" @click="$emit('load-snap-click', s.crosswordId)" @mouseover="mouseEntered(s)" @mouseleave="mouseLeft(s)">{{moment(s.createdDate).format('MM/DD/YYYY h:mm:ss A')}}</div>
       <div style="position: absolute; left: 275px; top: 25px; cursor: pointer" @click="onClick(s.id)">X</div>
     </div>
   </div>
@@ -12,29 +14,31 @@ import Vue from "vue";
 import { mapGetters } from "vuex";
 import NewPuzzleDialog from "./new-puzzle-dialog.vue";
 import { Crossword } from "../types/common";
-import Grid from "./grid/grid.vue"
+import Grid from "./grid/grid.vue";
 import bus from "../bus";
+import moment from "moment";
 export default Vue.extend({
   name: "SnapsList",
   props: ["snaps"],
-  components: {Grid},
+  components: { Grid },
   data() {
     return {
       previewingId: null
-    }
+    };
   },
   methods: {
     mouseEntered(id: string) {
-      console.log('mouse enter')
       this.previewingId = id;
     },
     mouseLeft() {
-      console.log('mouse leave')
       this.previewingId = null;
     },
     onClick(id: number) {
-      console.log(id);
       this.$store.dispatch("deleteSnap", id);
+      moment().format();
+    },
+    moment(input: string) {
+      return moment(input);
     }
   },
   computed: {
@@ -42,15 +46,15 @@ export default Vue.extend({
       editor: "editor",
       activeSession: "activeSession",
       crossword: "crossword",
-      session: "session",
+      session: "session"
     }),
     cssClass: function() {
-      return (sessionId: string)=> {
+      return (sessionId: string) => {
         return {
-          button: true,
-         // active: sessionId === (this as any).activeSession.id
-        }
-      }
+          button: true
+          // active: sessionId === (this as any).activeSession.id
+        };
+      };
     }
   }
 });
@@ -61,14 +65,14 @@ export default Vue.extend({
   top: 0;
   right: 300px;
   transform-origin: top right;
-  transform: scale(.5);
+  transform: scale(0.5);
 }
 .sidebar {
   width: 300px;
   position: absolute;
 }
 .sidebar.right {
-right: 0px;
+  right: 0px;
 }
 .row {
   position: relative;
